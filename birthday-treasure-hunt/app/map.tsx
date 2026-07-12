@@ -37,17 +37,17 @@ export default function Map() {
 
   // Helper calculation to find the exact center coordinate (X, Y) for any task node
   const getNodeCenter = (index: number) => {
-    const rowHeight = 150; 
+    const rowHeight = 150;
     const startY = 60;
-    
+
     // Smooth horizontal serpentine winding path pattern
     // Shifts elements left/right across the center line iteratively
     const xAmplitude = (SCREEN_WIDTH - 120) / 2;
     const centerX = SCREEN_WIDTH / 2;
-    
+
     const x = centerX + Math.sin(index * 1.2) * xAmplitude;
     const y = startY + index * rowHeight;
-    
+
     return { x, y };
   };
 
@@ -90,6 +90,17 @@ export default function Map() {
   };
 
   const handleProofSubmission = async () => {
+    if (selectedTask?.type === "crossword") {
+      router.push({
+        pathname: selectedTask.screen,
+        params: {
+          title: selectedTask.title,
+          clue: selectedTask.description,
+          task: "Solve the puzzle and submit your answer.",
+        },
+      });
+      return;
+    }
     if (!proofInput.trim()) return;
     const updated = activeTasks.map(t =>
       t.id === selectedTask.id ? { ...t, completed: true } : t
@@ -109,7 +120,7 @@ export default function Map() {
 
       {/* Calculating container layout dynamic canvas sizing constraint dynamically based on item count */}
       <ScrollView contentContainerStyle={[styles.scrollCanvas, { height: tasks.length * 150 + 150 }]}>
-        
+
         {/* NATIVE VECTOR CONNECTING TRAIL PATH */}
         {activeTasks.map((task, index) => {
           if (index === 0) return null;
@@ -225,7 +236,7 @@ export default function Map() {
                   </View>
                 )}
 
-                {["sudoku", "movie", "decode", "memory", "location", "locker"].includes(selectedTask?.type) && (
+                {["movie", "decode", "memory", "location", "locker"].includes(selectedTask?.type) && (
                   <TextInput
                     style={styles.inputBox}
                     placeholder="Type your answer text here..."
@@ -240,7 +251,7 @@ export default function Map() {
                     <Text style={styles.btnLabel}>Close</Text>
                   </Pressable>
                   <Pressable style={[styles.modalBtn, styles.btnSend]} onPress={handleProofSubmission}>
-                    <Text style={styles.btnLabel}>Submit</Text>
+                    <Text style={styles.btnLabel}>{selectedTask?.type === "crossword" ? "Navigate" : "Submit Proof"}</Text>
                   </Pressable>
                 </View>
               </View>
@@ -262,7 +273,7 @@ const styles = StyleSheet.create({
   headerEmoji: { fontSize: 28 },
   headerText: { fontSize: 22, color: '#FFD54F', fontWeight: '900', letterSpacing: 1.5, fontFamily: Platform.OS === 'ios' ? 'Arial Rounded MT Bold' : 'sans-serif-semibold' },
   scrollCanvas: { width: SCREEN_WIDTH, position: 'relative' },
-  
+
   /* DUOLINGO PATH CONNECTORS */
   nativeRouteSegment: {
     position: 'absolute',

@@ -34,12 +34,12 @@ export const tasks: Task[] = [
 
     {
         id: 4,
-        title: "Solve Birthday Sudoku",
-        description: "Complete the birthday sudoku.",
-        type: "sudoku",
+        title: "Solve Birthday crossword",
+        description: "Puzzle to solve.",
+        type: "crossword",
         completed: false,
         approved: false,
-        screen: "/sudoku",
+        screen: "/crossword",
     },
 
     {

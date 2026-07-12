@@ -1,7 +1,7 @@
 export type TaskType =
   | "photo"
   | "audio"
-  | "sudoku"
+  | "crossword"
   | "movie"
   | "decode"
   | "status"
