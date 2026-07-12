@@ -25,4 +25,6 @@ export interface Task {
 
   approved:boolean;
 
+  screen?:string;
+
 }

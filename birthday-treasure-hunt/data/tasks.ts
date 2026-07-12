@@ -8,7 +8,8 @@ title:"Take a Picture with a Tree",
 description:"Stand beside a tree and upload a picture.",
 type:"photo",
 completed:false,
-approved:false
+approved:false,
+screen: "/tree",
 },
 
 {
@@ -17,7 +18,8 @@ title:"Sing a Song",
 description:"Record yourself singing at least 30 seconds.",
 type:"audio",
 completed:false,
-approved:false
+approved:false,
+screen: "/sing",
 },
 
 {
@@ -26,7 +28,8 @@ title:"Walk 1 KM",
 description:"Upload your Google Fit screenshot.",
 type:"photo",
 completed:false,
-approved:false
+approved:false,
+screen: "/walk",
 },
 
 {
@@ -35,7 +38,8 @@ title:"Solve Birthday Sudoku",
 description:"Complete the birthday sudoku.",
 type:"sudoku",
 completed:false,
-approved:false
+approved:false,
+screen: "/sudoku",
 },
 
 {
@@ -45,7 +49,8 @@ description:"Guess today's movie.",
 reward:"L",
 type:"movie",
 completed:false,
-approved:false
+approved:false,
+screen: "/movie",
 },
 
 {
@@ -55,7 +60,8 @@ description:"Upload a funny selfie.",
 reward:"O",
 type:"photo",
 completed:false,
-approved:false
+approved:false,
+screen: "/selfie",
 },
 
 {
@@ -65,7 +71,8 @@ description:"Upload a picture with a dog.",
 reward:"C",
 type:"photo",
 completed:false,
-approved:false
+approved:false,
+screen: "/dog"
 },
 
 {
