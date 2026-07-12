@@ -26,5 +26,7 @@ export interface Task {
   approved: boolean;
 
   screen?: string;
+  x?: number;
+  y?: number;
 
 }

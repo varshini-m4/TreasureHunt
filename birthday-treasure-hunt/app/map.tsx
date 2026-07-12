@@ -1,12 +1,37 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Pressable, Modal, TextInput, ScrollView, Dimensions, Platform } from 'react-native';
 import { router } from 'expo-router';
+import Clouds from "../components/Clouds";
+import Petals from "../components/Petals";
 import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Svg, { Path } from "react-native-svg";
 // Importing your exact task array configuration
 import { tasks } from "../data/tasks";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const trees = [
+  { left: 25, top: 260 },
+  { left: 300, top: 520 },
+  { left: 40, top: 860 },
+  { left: 310, top: 1180 },
+  { left: 35, top: 1500 },
+];
 
+const flowers = [
+  { left: 280, top: 300, color: "#FF7EB6" },
+  { left: 90, top: 460, color: "#FFD966" },
+  { left: 290, top: 740, color: "#CBA6F7" },
+  { left: 80, top: 980, color: "#FF8FAB" },
+  { left: 290, top: 1320, color: "#FFD966" },
+  { left: 120, top: 1650, color: "#FFB3C6" },
+];
+
+const bushes = [
+  { left: 250, top: 900 },
+  { left: 30, top: 620 },
+  { left: 290, top: 1450 },
+];
 const getCustomIcon = (type: string) => {
   switch (type) {
     case "photo": return "📸";
@@ -50,6 +75,7 @@ export default function Map() {
 
     return { x, y };
   };
+
 
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -113,110 +139,165 @@ export default function Map() {
 
   return (
     <LinearGradient
-   colors={[
- "#A8E6FF",
- "#D7F7FF",
- "#FFF6CC",
- "#FFFDF8"
-]}
+   colors={["#AEE7FF",
+    "#DFF6FF",
+    "#FFF3D6",
+    "#FFF9F2",]}
     start={{ x: 0, y: 0 }}
     end={{ x: 0, y: 1 }}
     style={styles.mainContainer}
   >
-      <View style={styles.cloud1}>
-    <Text style={styles.cloud}>☁️</Text>
+    <Clouds />
+     <Petals />
+     <View style={styles.header}>
+
+  <Text style={styles.headerTitle}>
+    🌸 Birthday Adventure 🌸
+  </Text>
+
+  <Text style={styles.headerSubtitle}>
+    Every task brings you closer to your surprise 💖
+  </Text>
+
 </View>
+ <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 120 }}
+    >
+  <Svg
+    width="100%"
+    height="1700"
+    viewBox="0 0 400 1700"
+    style={styles.svg}
+  >
+    {tasks.map((task) => (
+      <Pressable
+  key={task.id}
+  style={[
+    styles.flowerContainer,
+    {
+      left: task.x - 45,
+      top: task.y - 45,
+    },
+  ]}
+>
 
-<View style={styles.cloud2}>
-    <Text style={styles.cloud}>☁️</Text>
-</View>
+  {/* Top */}
+  <View style={[styles.petal, { top: 0, left: 28 }]} />
 
-<View style={styles.cloud3}>
-    <Text style={styles.cloud}>☁️</Text>
-</View>
-<Text style={styles.flower1}>🌸</Text>
-<Text style={styles.flower2}>🌷</Text>
-<Text style={styles.flower3}>🌼</Text>
-<Text style={styles.flower4}>🌺</Text>
-<Text style={styles.flower5}>🌸</Text>
-      <View style={styles.mapHeader}>
-        <Text style={styles.headerEmoji}>🎒</Text>
-        <Text style={styles.headerText}>Birthday Adventure...</Text>
-      </View>
+  {/* Bottom */}
+  <View style={[styles.petal, { bottom: 0, left: 28 }]} />
 
-      {/* Calculating container layout dynamic canvas sizing constraint dynamically based on item count */}
-      <ScrollView contentContainerStyle={[styles.scrollCanvas, { height: tasks.length * 150 + 150 }]}>
+  {/* Left */}
+  <View style={[styles.petal, { left: 0, top: 28 }]} />
 
-        {/* NATIVE VECTOR CONNECTING TRAIL PATH */}
-        {activeTasks.map((task, index) => {
-          if (index === 0) return null;
+  {/* Right */}
+  <View style={[styles.petal, { right: 0, top: 28 }]} />
 
-          const prevCoord = getNodeCenter(index - 1);
-          const currentCoord = getNodeCenter(index);
+  {/* Top Left */}
+  <View style={[styles.smallPetal, { top: 8, left: 8 }]} />
 
-          const dx = currentCoord.x - prevCoord.x;
-          const dy = currentCoord.y - prevCoord.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+  {/* Top Right */}
+  <View style={[styles.smallPetal, { top: 8, right: 8 }]} />
 
-          const isPassed = task.id <= currentActiveId;
+  {/* Bottom Left */}
+  <View style={[styles.smallPetal, { bottom: 8, left: 8 }]} />
 
-          return (
-            <View
-              key={`line-path-${task.id}`}
-              style={[
-                styles.nativeRouteSegment,
-                {
-                  left: prevCoord.x,
-                  top: prevCoord.y,
-                  width: distance,
-                  transform: [
-                    { rotate: `${angle}deg` },
-                    { translateX: 0 },
-                    { translateY: -6 } // Vertical centering adjustment offset
-                  ],
-                  backgroundColor:"#2af0f3", shadowColor:"#21f0ed", shadowOpacity:0.8, shadowRadius:12
-                }
-              ]}
-            />
-          );
-        })}
+  {/* Bottom Right */}
+  <View style={[styles.smallPetal, { bottom: 8, right: 8 }]} />
 
-        {/* INTERACTIVE NODES - ONE PER ROW */}
-        {activeTasks.map((task, index) => {
-          const { x, y } = getNodeCenter(index);
+  <View style={styles.centerCircle}>
+    <Text style={styles.nodeEmoji}>{task.icon}</Text>
+  </View>
 
-          const isCompleted = task.completed && task.approved;
-          const isActive = task.id === currentActiveId;
-          const isLocked = task.id > currentActiveId;
-          const iconEmoji = getCustomIcon(task.type);
+  <View style={styles.numberBadge}>
+    <Text style={styles.badgeText}>{task.id}</Text>
+  </View>
 
-          return (
-            <Pressable
-              key={task.id}
-              disabled={isLocked}
-              style={[
-                styles.trailNode,
-                {
-                  left: x - 45, // Centers node bounding box relative to computed coordinate (width = 90)
-                  top: y - 45  // Centers node bounding box relative to computed coordinate (height = 90)
-                },
-                isCompleted && styles.nodeCompleted,
-                isActive && styles.nodeActive,
-                isLocked && styles.nodeLocked
-              ]}
-              onPress={() => setSelectedTask({ ...task, emoji: iconEmoji })}
-            >
-              <View style={styles.innerNodeWrapper}>
-                <Text style={styles.nodeEmoji}>{isCompleted ? "⭐️" : iconEmoji}</Text>
-              </View>
-              <View style={styles.badgeLabel}>
-                <Text style={styles.badgeText}>{task.id}</Text>
-              </View>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+</Pressable>
+))}
+{trees.map((tree, index) => (
+  <View
+    key={index}
+    style={[
+      styles.tree,
+      {
+        left: tree.left,
+        top: tree.top,
+      },
+    ]}
+  >
+    <View style={styles.treeTop} />
+    <View style={styles.treeTrunk} />
+  </View>
+))}
+{flowers.map((flower, index) => (
+  <View
+    key={index}
+    style={[
+      styles.flowerDecoration,
+      {
+        left: flower.left,
+        top: flower.top,
+      },
+    ]}
+  >
+    <View
+      style={[
+        styles.flowerCenter,
+        { backgroundColor: flower.color },
+      ]}
+    />
+  </View>
+))}
+{bushes.map((bush, index) => (
+  <View
+    key={index}
+    style={[
+      styles.bush,
+      {
+        left: bush.left,
+        top: bush.top,
+      },
+    ]}
+  />
+))}
+    <Path
+      d="
+      M 200 180
+      C 320 170, 320 250, 200 340
+      C 70 430, 70 520, 200 610
+      C 330 700, 330 790, 200 880
+      C 60 980, 60 1080, 200 1170
+      C 330 1260, 330 1350, 200 1440
+      C 80 1520, 80 1600, 200 1660
+      "
+      stroke="#E8C35C"
+      strokeWidth="38"
+      opacity={0.55}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+
+    <Path
+      d="
+      M 200 180
+      C 320 170, 320 250, 200 340
+      C 70 430, 70 520, 200 610
+      C 330 700, 330 790, 200 880
+      C 60 980, 60 1080, 200 1170
+      C 330 1260, 330 1350, 200 1440
+      C 80 1520, 80 1600, 200 1660
+      "
+      stroke="#FFE69A"
+      strokeWidth="24"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+</ScrollView>
 
       {/* SYSTEM MISSION MODAL CONTAINER */}
       <Modal visible={selectedTask !== null} animationType="fade" transparent={true}>
@@ -294,10 +375,272 @@ export default function Map() {
 }
 
 const styles = StyleSheet.create({
+  tree: {
+  position: "absolute",
+  alignItems: "center",
+},
+
+treeTop: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  backgroundColor: "#4CAF50",
+
+  shadowColor: "#2E7D32",
+  shadowOpacity: 0.35,
+  shadowRadius: 8,
+},
+
+treeTrunk: {
+  width: 8,
+  height: 18,
+  backgroundColor: "#8D6E63",
+  marginTop: -2,
+},
+
+flowerDecoration: {
+  position: "absolute",
+  width: 24,
+  height: 24,
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+flowerCenter: {
+  width: 16,
+  height: 16,
+  borderRadius: 8,
+
+  borderWidth: 3,
+  borderColor: "#FFFFFF",
+},
+
+bush: {
+  position: "absolute",
+
+  width: 36,
+  height: 20,
+
+  borderRadius: 12,
+
+  backgroundColor: "#66BB6A",
+},
+  header: {
+  marginTop: 60,
+  width: "88%",
+  marginHorizontal: 20,
+  padding: 20,
+
+  borderRadius: 28,
+
+  backgroundColor: "rgba(255,255,255,0.65)",
+
+  borderWidth: 1,
+
+  borderColor: "rgba(255,255,255,0.8)",
+
+  shadowColor: "#FFB8D2",
+
+  shadowOpacity: 0.25,
+
+  shadowRadius: 20,
+
+  elevation: 8,
+
+  alignItems: "center",
+},
+smallPetal: {
+  position: "absolute",
+
+  width: 24,
+  height: 24,
+
+  borderRadius: 12,
+
+  backgroundColor: "#FFE3EF",
+
+  shadowColor: "#FFB6D2",
+  shadowOpacity: 0.3,
+  shadowRadius: 5,
+},
+headerTitle: {
+  fontSize: 22,
+  fontWeight: "700",
+  color: "#FF5F99",
+},
+
+headerSubtitle: {
+  marginTop: 8,
+  fontSize: 15,
+  color: "#555",
+  textAlign: "center",
+},
+mapContainer: {
+  marginTop: 80,
+  alignItems: "center",
+  height: 2200,
+},
+
+node: {
+  position: "absolute",
+
+  width: 70,
+  height: 70,
+
+  borderRadius: 35,
+
+  backgroundColor: "#FFF8FD",
+
+  justifyContent: "center",
+  alignItems: "center",
+
+  borderWidth: 4,
+  borderColor: "#FFD7E8",
+
+  shadowColor: "#FFB6D2",
+  shadowOpacity: 0.35,
+  shadowRadius: 12,
+
+  elevation: 10,
+},
+
+currentNode: {
+  backgroundColor: "#FFEAA7",
+
+  borderColor: "#FFC75F",
+
+  transform: [
+    {
+      scale: 1.08,
+    },
+  ],
+},
+flowerContainer: {
+  position: "absolute",
+  width: 84,
+  height: 84,
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+petal: {
+  position: "absolute",
+  width: 34,
+  height: 34,
+  borderRadius: 17,
+  backgroundColor: "#FFD6E8",
+
+  shadowColor: "#FF9FC5",
+  shadowOpacity: 0.35,
+  shadowRadius: 6,
+  elevation: 4,
+},
+
+topPetal: {
+  top: 0,
+},
+
+bottomPetal: {
+  bottom: 0,
+},
+
+leftPetal: {
+  left: 0,
+},
+
+rightPetal: {
+  right: 0,
+},
+
+centerCircle: {
+  width: 48,
+  height: 48,
+  borderRadius: 24,
+
+  backgroundColor: "#FFF8D9",
+
+  justifyContent: "center",
+  alignItems: "center",
+
+  borderWidth: 3,
+  borderColor: "#FFC75F",
+
+  shadowColor: "#FFC75F",
+  shadowOpacity: 0.4,
+  shadowRadius: 10,
+  elevation: 8,
+},
+
+currentCenter: {
+  backgroundColor: "#FFE082",
+},
+
+completedCenter: {
+  backgroundColor: "#B9F6CA",
+},
+
+nodeEmoji: {
+  fontSize: 24,
+},
+
+numberBadge: {
+  position: "absolute",
+  right: -2,
+  bottom: -2,
+
+  width: 24,
+  height: 24,
+
+  borderRadius: 12,
+
+  backgroundColor: "#FF5C8A",
+
+  justifyContent: "center",
+  alignItems: "center",
+
+  borderWidth: 2,
+  borderColor: "white",
+},
+
+badgeText: {
+  color: "white",
+  fontWeight: "700",
+  fontSize: 12,
+},
+
+nodeEmoji: {
+  fontSize: 30,
+},
+
+numberBadge: {
+  position: "absolute",
+
+  right: -6,
+  bottom: -6,
+
+  width: 24,
+  height: 24,
+
+  borderRadius: 12,
+
+  backgroundColor: "#FF6B9D",
+
+  justifyContent: "center",
+  alignItems: "center",
+
+  borderWidth: 2,
+  borderColor: "white",
+},
+
+badgeText: {
+  color: "white",
+  fontWeight: "700",
+  fontSize: 12,
+},
+svg: {
+  position: "absolute",
+},
   mainContainer: { flex: 1 },
-  mapHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingTop: 60, paddingBottom: 20, backgroundColor: '#FFF8FC', borderBottomWidth: 4, borderColor: '#FFF8FC', gap: 10 },
-  headerEmoji: { fontSize: 28 },
-  headerText: { fontSize: 22, color: '#25c4f0', fontWeight: '900', letterSpacing: 1.5, fontFamily: Platform.OS === 'ios' ? 'Arial Rounded MT Bold' : 'sans-serif-semibold' },
   scrollCanvas: { width: SCREEN_WIDTH, position: 'relative' },
 
   /* DUOLINGO PATH CONNECTORS */

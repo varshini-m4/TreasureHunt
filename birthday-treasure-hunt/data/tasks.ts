@@ -10,6 +10,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/tree",
+        x: 300, y: 220,
     },
 
     {
@@ -20,6 +21,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/sing",
+        x: 200, y: 120,
     },
 
     {
@@ -30,6 +32,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/walk",
+        x: 400, y: 120,
     },
 
     {
