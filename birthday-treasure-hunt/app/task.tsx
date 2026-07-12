@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { COLORS } from "../src/constants/colors";
+import { Colors } from "../constants/colors";
 
 export default function TaskScreen() {
   const params = useLocalSearchParams<{
@@ -62,23 +62,23 @@ export default function TaskScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: Colors.background,
     paddingHorizontal: 24,
     paddingTop: 56,
   },
   eyebrow: {
-    color: COLORS.primary,
+    color: Colors.primary,
     fontWeight: "700",
     marginBottom: 8,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: COLORS.dark,
+    color: Colors.dark,
     marginBottom: 18,
   },
   card: {
-    backgroundColor: COLORS.white,
+    backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 20,
     marginBottom: 20,
@@ -90,24 +90,24 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "700",
-    color: COLORS.primary,
+    color: Colors.primary,
     marginBottom: 6,
   },
   text: {
     fontSize: 16,
-    color: COLORS.dark,
+    color: Colors.dark,
     lineHeight: 24,
     marginBottom: 14,
   },
   button: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
     marginBottom: 12,
   },
   buttonText: {
-    color: COLORS.white,
+    color: Colors.white,
     fontSize: 16,
     fontWeight: "700",
   },
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   secondaryText: {
-    color: COLORS.grey,
+    color: Colors.grey,
     fontSize: 15,
   },
 });

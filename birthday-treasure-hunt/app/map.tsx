@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { COLORS } from "../src/constants/colors";
+import { Colors } from "../constants/colors";
 
 const checkpoints = [
   {
@@ -103,25 +103,25 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: Colors.background,
     paddingHorizontal: 24,
     paddingTop: 48,
   },
   title: {
     fontSize: 30,
     fontWeight: "700",
-    color: COLORS.dark,
+    color: Colors.dark,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 15,
-    color: COLORS.grey,
+    color: Colors.grey,
     marginBottom: 18,
   },
   card: {
     marginBottom: 12,
     borderRadius: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: Colors.white,
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: Colors.secondary,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -150,11 +150,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: COLORS.dark,
+    color: Colors.dark,
     marginBottom: 4,
   },
   cardHint: {
     fontSize: 13,
-    color: COLORS.grey,
+    color: Colors.grey,
   },
 });

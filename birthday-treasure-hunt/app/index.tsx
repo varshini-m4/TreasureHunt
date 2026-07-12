@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import PrimaryButton from "../src/components/PrimaryButton";
+import PrimaryButton from "../components/PrimaryButton";
 
 export default function Home() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
