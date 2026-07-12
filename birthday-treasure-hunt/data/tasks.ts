@@ -15,7 +15,7 @@ export const tasks: Task[] = [
     {
         id: 2,
         title: "Sing a Song",
-        description: "Record yourself singing at least 30 seconds.",
+        description: "Record yourself singing at least 1 minute.",
         type: "audio",
         completed: false,
         approved: false,
