@@ -11,7 +11,7 @@ export default function MapScreen() {
       <Text style={styles.subtitle}>
         Complete every mission to unlock the birthday treasure.
       </Text>
-
+      
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id.toString()}

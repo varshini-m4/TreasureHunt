@@ -79,6 +79,10 @@ export default function Home() {
           title="Start Adventure"
           onPress={validateAnswer}
         />
+        <PrimaryButton
+  title="Start Crossword"
+  onPress={() => router.push("/crossword")}
+/>
       </Animated.View>
     </ImageBackground>
   );
