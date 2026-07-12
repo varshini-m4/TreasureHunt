@@ -1,4 +1,5 @@
 export const Colors = {
+  
   background: "#08121E",
 
   primary: "#FFD54F",
@@ -23,5 +24,12 @@ export const Colors = {
 
   locked: "#4D6078",
 
-  path: "#F6C445"
+  path: "#F6C445",
+
+  dark: "#0A1F2D",
+
+  white: "#FFFFFF",
+
+  grey: "#BFC8D6",
+
 }
