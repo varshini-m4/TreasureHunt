@@ -11,20 +11,20 @@ export type TaskType =
 
 export interface Task {
 
-  id:number;
+  id: number;
 
-  title:string;
+  title: string;
 
-  description:string;
+  description: string;
 
-  type:TaskType;
+  type: TaskType;
 
-  reward?:string;
+  reward?: string;
 
-  completed:boolean;
+  completed: boolean;
 
-  approved:boolean;
+  approved: boolean;
 
-  screen?:string;
+  screen?: string;
 
 }

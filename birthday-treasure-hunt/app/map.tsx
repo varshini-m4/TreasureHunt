@@ -1,402 +1,302 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Animated, StyleSheet, Text, View, Dimensions, Platform, Pressable, ScrollView } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, Pressable, Modal, TextInput, ScrollView, Dimensions, Platform } from 'react-native';
+import { router } from 'expo-router';
 
-// Dynamic platform import for Map elements
-let MapView: any, Marker: any, Polyline: any, PROVIDER_GOOGLE: any;
-if (Platform.OS !== "web") {
-  const Maps = require("react-native-maps");
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-  Polyline = Maps.Polyline;
-  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
-}
-
+// Importing your exact task array configuration
 import { tasks } from "../data/tasks";
 
-const darkMapStyle = [
-  { "elementType": "geometry", "stylers": [{ "color": "#08121E" }] },
-  { "elementType": "labels.text.fill", "stylers": [{ "color": "#746855" }] },
-  { "elementType": "labels.text.stroke", "stylers": [{ "color": "#242f3e" }] },
-  { "featureType": "poi", "elementType": "labels", "stylers": [{ "visibility": "off" }] },
-  { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#38414e" }] },
-  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#17263c" }] }
-];
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const generateMockCoordinates = (index: any) => {
-  const baseLat = 37.78825;
-  const baseLng = -122.4324;
-  const row = Math.floor(index / 3);
-  const col = index % 3;
-  const direction = row % 2 === 0 ? col : 2 - col;
-  return {
-    latitude: baseLat - row * 0.0025,
-    longitude: baseLng + direction * 0.003,
-  };
-};
-
-const getTaskEmoji = (type: any) => {
+const getCustomIcon = (type: string) => {
   switch (type) {
     case "photo": return "📸";
     case "audio": return "🎵";
     case "sudoku": return "🧩";
     case "movie": return "🎬";
-    case "decode": return "🔐";
-    case "status": return "📲";
+    case "decode": return "🔍";
+    case "status": return "📱";
     case "memory": return "💭";
     case "location": return "📍";
-    case "locker": return "🔓";
+    case "locker": return "🔐";
     default: return "🌟";
   }
 };
 
-export default function MapScreen() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const params = useLocalSearchParams();
+import * as ImagePicker from 'expo-image-picker';
+import { Audio } from 'expo-av';
 
-  useEffect(() => {
-    if (params?.completedTaskId) {
-      const nextStep = 1 //parseInt(params?.completedTaskId, 10) + 1;
-      if (nextStep > currentStep) {
-        setCurrentStep(nextStep);
-      }
-    }
-  }, [params?.completedTaskId]);
+export default function Map() {
+  const [activeTasks, setActiveTasks] = useState(tasks);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [proofInput, setProofInput] = useState('');
 
-  const mapCheckpoints = useMemo(() => {
-    return tasks.map((task, index) => ({
-      ...task,
-      emoji: getTaskEmoji(task.type),
-      coordinates: generateMockCoordinates(index),
-    }));
-  }, []);
+  const currentActiveId = activeTasks.find(t => !t.completed)?.id || 16;
 
-  const activeRouteCoordinates = useMemo(() => {
-    return mapCheckpoints
-      .filter((item) => item.id <= currentStep)
-      .map((item) => item.coordinates);
-  }, [currentStep, mapCheckpoints]);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
 
-  const handleTaskPress = (item: any, isLocked: any) => {
-    if (isLocked) return;
-    const destinationPath = item.screen ? item.screen : "/task";
-    router.push({
-      pathname: destinationPath,
-      params: {
-        id: item.id.toString(),
-        title: item.title,
-        description: item.description,
-        reward: item.reward || "",
-      },
-    });
+  // Helper calculation to find the exact center coordinate (X, Y) for any task node
+  const getNodeCenter = (index: number) => {
+    const rowHeight = 150; 
+    const startY = 60;
+    
+    // Smooth horizontal serpentine winding path pattern
+    // Shifts elements left/right across the center line iteratively
+    const xAmplitude = (SCREEN_WIDTH - 120) / 2;
+    const centerX = SCREEN_WIDTH / 2;
+    
+    const x = centerX + Math.sin(index * 1.2) * xAmplitude;
+    const y = startY + index * rowHeight;
+    
+    return { x, y };
   };
 
-  // ==========================================
-  // WEB ZIGZAG BOARD GAME LAYOUT
-  // ==========================================
-  if (Platform.OS === "web") {
-    return (
-      <View style={styles.webContainer}>
-        <View style={styles.webMapCard}>
-          <Text style={styles.title}>🗺️ Treasure Map</Text>
-          <Text style={styles.subtitle}>
-            {currentStep > tasks.length
-              ? "✨ Incredible! You have unlocked the ultimate treasure! ✨"
-              : "Snake your way through the track below to reveal the birthday treasure."}
-          </Text>
+  const handlePickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("Permission to access camera roll is required!");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setProofInput(result.assets[0].uri);
+    }
+  };
 
-          <ScrollView contentContainerStyle={styles.webTrailContainer} showsVerticalScrollIndicator={false}>
-            {mapCheckpoints.map((item, index) => {
-              const isDone = item.id < currentStep;
-              const isActive = item.id === currentStep;
-              const isLocked = item.id > currentStep;
+  const handleStartRecording = async () => {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) return;
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start audio track recording', err);
+    }
+  };
 
-              // Alternates alignment side to create the signature layout snake feel
-              const isEvenRow = index % 2 === 0;
+  const handleStopRecording = async () => {
+    if (!recording) return;
+    setIsRecording(false);
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+    setProofInput(uri || '');
+    setRecording(null);
+    alert("🎵 Audio clip recorded successfully!");
+  };
 
-              return (
-                <View key={item.id} style={styles.webStepWrapper}>
-                  {/* Vertical Track Linkers */}
-                  {index > 0 && (
-                    <View style={[
-                      styles.webPathLine,
-                      isEvenRow ? styles.webPathLeft : styles.webPathRight,
-                      item.id <= currentStep ? styles.webPathLineActive : styles.webPathLineLocked
-                    ]} />
-                  )}
-
-                  <View style={[styles.webRowAligner, { justifyContent: isEvenRow ? "flex-start" : "flex-end" }]}>
-                    <Pressable
-                      onPress={() => handleTaskPress(item, isLocked)}
-                      style={[
-                        styles.webRowCard,
-                        isDone && styles.webCardDone,
-                        isActive && styles.webCardActive,
-                        isLocked && styles.webCardLocked,
-                      ]}
-                      disabled={isLocked}
-                    >
-                      <View style={[
-                        styles.webIconBubble,
-                        isDone && styles.markerDone,
-                        isActive && styles.markerActive,
-                        isLocked && styles.markerLocked
-                      ]}>
-                        <Text style={[styles.markerIcon, isLocked && { opacity: 0.3 }]}>
-                          {isDone ? "✅" : item.emoji}
-                        </Text>
-                      </View>
-
-                      <View style={styles.webCardText}>
-                        <Text style={[styles.webCardTitle, isLocked && { color: "#556475" }]}>
-                          {item.id}. {item.title} {isActive && "⚡️"}
-                        </Text>
-                        <Text style={[styles.webCardClue, isLocked && { color: "#3B4E63" }]}>
-                          {isLocked ? "🔒 Locked until previous steps are clear" : item.description}
-                        </Text>
-                        {item.reward && !isLocked && (
-                          <Text style={styles.rewardBadge}>Key: {item.reward}</Text>
-                        )}
-                      </View>
-                    </Pressable>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </View>
-      </View>
+  const handleProofSubmission = async () => {
+    if (!proofInput.trim()) return;
+    const updated = activeTasks.map(t =>
+      t.id === selectedTask.id ? { ...t, completed: true } : t
     );
-  }
+    setActiveTasks(updated);
+    setSelectedTask(null);
+    setProofInput('');
+    alert("✨ Evidence uploaded successfully!");
+  };
 
-  // ==========================================
-  // NATIVE MOBILE GEO-MAP LAYOUT
-  // ==========================================
   return (
-    <View style={styles.container}>
-      <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        customMapStyle={darkMapStyle}
-        initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.018,
-          longitudeDelta: 0.018,
-        }}
-      >
-        {activeRouteCoordinates.length > 1 && (
-          <Polyline
-            coordinates={activeRouteCoordinates}
-            strokeColor="#FFD54F"
-            strokeWidth={4}
-            lineDashPattern={[6, 6]}
-          />
-        )}
+    <View style={styles.mainContainer}>
+      <View style={styles.mapHeader}>
+        <Text style={styles.headerEmoji}>🎒</Text>
+        <Text style={styles.headerText}>Treasure Hunt Started...</Text>
+      </View>
 
-        {mapCheckpoints.map((item) => {
-          const isDone = item.id < currentStep;
-          const isActive = item.id === currentStep;
-          const isLocked = item.id > currentStep;
+      {/* Calculating container layout dynamic canvas sizing constraint dynamically based on item count */}
+      <ScrollView contentContainerStyle={[styles.scrollCanvas, { height: tasks.length * 150 + 150 }]}>
+        
+        {/* NATIVE VECTOR CONNECTING TRAIL PATH */}
+        {activeTasks.map((task, index) => {
+          if (index === 0) return null;
+
+          const prevCoord = getNodeCenter(index - 1);
+          const currentCoord = getNodeCenter(index);
+
+          const dx = currentCoord.x - prevCoord.x;
+          const dy = currentCoord.y - prevCoord.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+          const isPassed = task.id <= currentActiveId;
 
           return (
-            <Marker
-              key={item.id}
-              coordinate={item.coordinates}
-              onPress={() => handleTaskPress(item, isLocked)}
-            >
-              <View style={[
-                styles.markerBubble,
-                isDone && styles.markerDone,
-                isLocked && styles.markerLocked,
-                isActive && styles.markerActive
-              ]}>
-                <Text style={[styles.markerIcon, isLocked && { opacity: 0.35 }]}>
-                  {isDone ? "✅" : item.emoji}
-                </Text>
-              </View>
-            </Marker>
+            <View
+              key={`line-path-${task.id}`}
+              style={[
+                styles.nativeRouteSegment,
+                {
+                  left: prevCoord.x,
+                  top: prevCoord.y,
+                  width: distance,
+                  transform: [
+                    { rotate: `${angle}deg` },
+                    { translateX: 0 },
+                    { translateY: -6 } // Vertical centering adjustment offset
+                  ],
+                  backgroundColor: isPassed ? '#85CC24' : '#4A5D6E',
+                }
+              ]}
+            />
           );
         })}
-      </MapView>
 
-      <View style={styles.hudContainer}>
-        <Text style={styles.title}>🗺️ Treasure Map</Text>
-        <Text style={styles.subtitle}>
-          {currentStep > tasks.length
-            ? "✨ All tasks complete! Open the final reward! ✨"
-            : `Active Mission (${currentStep}/${tasks.length}): ${mapCheckpoints[currentStep - 1].title}`}
-        </Text>
-      </View>
+        {/* INTERACTIVE NODES - ONE PER ROW */}
+        {activeTasks.map((task, index) => {
+          const { x, y } = getNodeCenter(index);
+
+          const isCompleted = task.completed && task.approved;
+          const isActive = task.id === currentActiveId;
+          const isLocked = task.id > currentActiveId;
+          const iconEmoji = getCustomIcon(task.type);
+
+          return (
+            <Pressable
+              key={task.id}
+              disabled={isLocked}
+              style={[
+                styles.trailNode,
+                {
+                  left: x - 45, // Centers node bounding box relative to computed coordinate (width = 90)
+                  top: y - 45  // Centers node bounding box relative to computed coordinate (height = 90)
+                },
+                isCompleted && styles.nodeCompleted,
+                isActive && styles.nodeActive,
+                isLocked && styles.nodeLocked
+              ]}
+              onPress={() => setSelectedTask({ ...task, emoji: iconEmoji })}
+            >
+              <View style={styles.innerNodeWrapper}>
+                <Text style={styles.nodeEmoji}>{isCompleted ? "⭐️" : iconEmoji}</Text>
+              </View>
+              <View style={styles.badgeLabel}>
+                <Text style={styles.badgeText}>{task.id}</Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {/* SYSTEM MISSION MODAL CONTAINER */}
+      <Modal visible={selectedTask !== null} animationType="fade" transparent={true}>
+        <View style={styles.overlayContainer}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalBigIcon}>{selectedTask?.emoji}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>{selectedTask?.title}</Text>
+                <Text style={styles.statusLabel}>
+                  Status: <Text style={{ color: selectedTask?.completed ? '#85CC24' : '#FFB300', fontWeight: 'bold' }}>
+                    {selectedTask?.completed ? "PENDING APPROVAL" : "ACTIVE"}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <Text style={styles.sectionHeading}>YOUR MISSION:</Text>
+            <Text style={styles.descriptionText}>{selectedTask?.description}</Text>
+
+            {!selectedTask?.completed ? (
+              <View>
+                <Text style={styles.sectionHeading}>UPLOAD SUBMISSION PROOF:</Text>
+                {selectedTask?.type === "photo" && (
+                  <View style={styles.mediaUploadBox}>
+                    {proofInput ? <Text style={styles.uploadedSuccessText}>📸 Photo Staged!</Text> : null}
+                    <Pressable style={styles.mediaButton} onPress={handlePickImage}>
+                      <Text style={styles.mediaButtonText}>Select Photo</Text>
+                    </Pressable>
+                  </View>
+                )}
+
+                {selectedTask?.type === "audio" && (
+                  <View style={styles.mediaUploadBox}>
+                    <Pressable
+                      style={[styles.mediaButton, isRecording && { backgroundColor: '#DC2626' }]}
+                      onPress={isRecording ? handleStopRecording : handleStartRecording}
+                    >
+                      <Text style={styles.mediaButtonText}>{isRecording ? "🛑 Stop" : "🎙️ Record Audio"}</Text>
+                    </Pressable>
+                  </View>
+                )}
+
+                {["sudoku", "movie", "decode", "memory", "location", "locker"].includes(selectedTask?.type) && (
+                  <TextInput
+                    style={styles.inputBox}
+                    placeholder="Type your answer text here..."
+                    placeholderTextColor="#64748B"
+                    value={proofInput}
+                    onChangeText={setProofInput}
+                  />
+                )}
+
+                <View style={styles.actionRow}>
+                  <Pressable style={[styles.modalBtn, styles.btnBack]} onPress={() => setSelectedTask(null)}>
+                    <Text style={styles.btnLabel}>Close</Text>
+                  </Pressable>
+                  <Pressable style={[styles.modalBtn, styles.btnSend]} onPress={handleProofSubmission}>
+                    <Text style={styles.btnLabel}>Submit</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable style={[styles.modalBtn, styles.btnBack, { width: '100%' }]} onPress={() => setSelectedTask(null)}>
+                <Text style={styles.btnLabel}>Back to Map Trail</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Native Mobile Layout Styles
-  container: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  map: {
-    ...StyleSheet.absoluteFill,
-  },
-  hudContainer: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    right: 20,
-    backgroundColor: "rgba(8, 18, 30, 0.92)",
-    padding: 18,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#34495E",
-  },
-  title: {
-    fontSize: 28,
-    color: "#FFD54F",
-    fontWeight: "700",
-  },
-  subtitle: {
-    color: "#FFFFFF",
-    marginTop: 6,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  markerBubble: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#0B1E33",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2.5,
-    borderColor: "#FFD54F",
-  },
-  markerActive: {
-    borderColor: "#FF5252",
-    backgroundColor: "#162B44",
-    transform: [{ scale: 1.2 }],
-  },
-  markerDone: {
-    borderColor: "#4CAF50",
-    backgroundColor: "#0F281B",
-  },
-  markerLocked: {
-    borderColor: "#455A64",
-    backgroundColor: "#1C2A38",
-  },
-  markerIcon: {
-    fontSize: 20,
-  },
-
-  // Interactive Web Layout Styles
-  webContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-    backgroundColor: "#040A12",
-  },
-  webMapCard: {
-    width: "100%",
-    maxWidth: 650,
-    backgroundColor: "#08121E",
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#1E3A5F",
-  },
-  webTrailContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 30,
-  },
-  webStepWrapper: {
-    width: "100%",
-    position: "relative",
-  },
-  webRowAligner: {
-    flexDirection: "row",
-    width: "100%",
-  },
-  webPathLine: {
-    width: 3,
-    height: 30,
-    borderStyle: "dashed",
-    borderWidth: 1.5,
-    position: "absolute",
-    top: -32,
+  mainContainer: { flex: 1, backgroundColor: '#162534' },
+  mapHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingTop: 60, paddingBottom: 20, backgroundColor: '#1C3147', borderBottomWidth: 4, borderColor: '#243F5C', gap: 10 },
+  headerEmoji: { fontSize: 28 },
+  headerText: { fontSize: 22, color: '#FFD54F', fontWeight: '900', letterSpacing: 1.5, fontFamily: Platform.OS === 'ios' ? 'Arial Rounded MT Bold' : 'sans-serif-semibold' },
+  scrollCanvas: { width: SCREEN_WIDTH, position: 'relative' },
+  
+  /* DUOLINGO PATH CONNECTORS */
+  nativeRouteSegment: {
+    position: 'absolute',
+    height: 12,
+    borderRadius: 6,
+    transformOrigin: 'left center',
     zIndex: 1,
   },
-  webPathLeft: {
-    left: "20%", // Anchors connect line underneath left-shifted elements
-  },
-  webPathRight: {
-    right: "20%", // Anchors connect line underneath right-shifted elements
-  },
-  webPathLineActive: {
-    borderColor: "#4CAF50",
-  },
-  webPathLineLocked: {
-    borderColor: "#2C3E50",
-  },
-  webRowCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "75%", // Keeps spaces alternating on either side cleanly
-    padding: 16,
-    borderRadius: 14,
-    backgroundColor: "#0D1F38",
-    borderWidth: 1.5,
-    borderColor: "#1E3656",
-    marginVertical: 4,
-  },
-  webCardActive: {
-    borderColor: "#FFD54F",
-    backgroundColor: "#122846",
-  },
-  webCardDone: {
-    borderColor: "#2E7D32",
-    backgroundColor: "#0A2214",
-  },
-  webCardLocked: {
-    backgroundColor: "#050C14",
-    borderColor: "#102033",
-    opacity: 0.5,
-  },
-  webIconBubble: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    marginRight: 16,
-  },
-  webCardText: {
-    flex: 1,
-  },
-  webCardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FFF",
-    marginBottom: 3,
-  },
-  webCardClue: {
-    fontSize: 13,
-    color: "#B0BEC5",
-    lineHeight: 18,
-  },
-  rewardBadge: {
-    alignSelf: "flex-start",
-    fontSize: 11,
-    color: "#FFD54F",
-    backgroundColor: "#2C2205",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 6,
-    fontWeight: "600",
-  },
+
+  trailNode: { position: 'absolute', width: 90, height: 90, borderRadius: 45, backgroundColor: '#2C3E50', alignItems: 'center', justifyContent: 'center', borderWidth: 5, borderColor: '#E2E8F0', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 8, zIndex: 2 },
+  innerNodeWrapper: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+  nodeActive: { borderColor: '#FFD54F', backgroundColor: '#FFB300', transform: [{ scale: 1.1 }] },
+  nodeCompleted: { borderColor: '#85CC24', backgroundColor: '#5D9E1B' },
+  nodeLocked: { borderColor: '#4A5D6E', backgroundColor: '#1F2D3D', opacity: 0.5 },
+  nodeEmoji: { fontSize: 34 },
+  badgeLabel: { position: 'absolute', bottom: -2, right: -2, backgroundColor: '#E11D48', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF', zIndex: 3 },
+  badgeText: { color: '#FFF', fontSize: 11, fontWeight: '900' },
+  overlayContainer: { flex: 1, backgroundColor: 'rgba(11, 19, 28, 0.85)', justifyContent: 'center', alignItems: 'center' },
+  modalCard: { width: '88%', backgroundColor: '#203347', borderRadius: 28, padding: 24, borderWidth: 4, borderColor: '#2C4A69' },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  modalBigIcon: { fontSize: 44 },
+  modalTitle: { color: '#FFF', fontSize: 20, fontWeight: '900' },
+  statusLabel: { color: '#94A3B8', fontSize: 12, marginTop: 4 },
+  divider: { height: 3, backgroundColor: '#2C4A69', marginVertical: 18, borderRadius: 2 },
+  sectionHeading: { color: '#FFD54F', fontSize: 11, fontWeight: '900', marginBottom: 6, letterSpacing: 1 },
+  descriptionText: { color: '#E2E8F0', fontSize: 14, lineHeight: 22, marginBottom: 16 },
+  inputBox: { backgroundColor: '#0F1A24', color: '#FFF', borderRadius: 12, padding: 14, fontSize: 14, borderWidth: 2, borderColor: '#2C4A69', marginBottom: 20 },
+  actionRow: { flexDirection: 'row', gap: 12 },
+  modalBtn: { flex: 1, padding: 14, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  btnBack: { backgroundColor: '#475569' },
+  btnSend: { backgroundColor: '#85CC24' },
+  btnLabel: { color: '#FFF', fontWeight: '900', fontSize: 14 },
+  mediaUploadBox: { backgroundColor: '#0F1A24', borderRadius: 16, padding: 16, borderWidth: 2, borderColor: '#2C4A69', marginBottom: 20, alignItems: 'center', justifyContent: 'center' },
+  mediaButton: { backgroundColor: '#38BDF8', width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  mediaButtonText: { color: '#0F172A', fontWeight: '900', fontSize: 14 },
+  uploadedSuccessText: { color: '#85CC24', fontSize: 13, fontWeight: '700', marginBottom: 12 }
 });
