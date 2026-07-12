@@ -10,7 +10,7 @@ import PrimaryButton from "../src/components/PrimaryButton";
 export default function Home() {
   return (
     <ImageBackground
-      source={require("../assets/images/background.png")}
+      source={require("../assets/images/background.jpg")}
       style={styles.container}
     >
       <Text style={styles.title}>
