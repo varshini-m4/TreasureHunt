@@ -10,7 +10,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/tree",
-        x: 300, y: 220,
+        x: 300, y: 150,
     },
 
     {
@@ -21,7 +21,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/sing",
-        x: 200, y: 120,
+        x: 120, y: 320,
     },
 
     {
@@ -32,7 +32,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/walk",
-        x: 400, y: 120,
+        x: 340, y: 490,
     },
 
     {
@@ -43,6 +43,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/crossword",
+        x: 160, y: 660
     },
 
     {
@@ -54,6 +55,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/movie",
+        x: 360, y: 830
     },
 
     {
@@ -65,6 +67,7 @@ export const tasks: Task[] = [
         completed: false,
         approved: false,
         screen: "/selfie",
+         x: 140, y: 1000
     },
 
     {
@@ -75,7 +78,8 @@ export const tasks: Task[] = [
         type: "photo",
         completed: false,
         approved: false,
-        screen: "/dog"
+        screen: "/dog",
+        x: 330, y: 1170
     },
 
     {
@@ -85,7 +89,8 @@ export const tasks: Task[] = [
         reward: "K",
         type: "decode",
         completed: false,
-        approved: false
+        approved: false,
+        x: 170, y: 1340
     },
 
     {
@@ -95,7 +100,8 @@ export const tasks: Task[] = [
         reward: "E",
         type: "status",
         completed: false,
-        approved: false
+        approved: false,
+        x: 350, y: 1510
     },
 
     {
@@ -104,7 +110,8 @@ export const tasks: Task[] = [
         description: "Enter collected word.",
         type: "movie",
         completed: false,
-        approved: false
+        approved: false,
+        x: 130, y: 1680
     },
 
     {
@@ -113,7 +120,8 @@ export const tasks: Task[] = [
         description: "Tell us your best memory.",
         type: "memory",
         completed: false,
-        approved: false
+        approved: false,
+        x: 320, y: 1850
     },
 
     {
@@ -122,7 +130,8 @@ export const tasks: Task[] = [
         description: "Where mornings begin with hot coffee.",
         type: "location",
         completed: false,
-        approved: false
+        approved: false,
+        x: 150, y: 2020
     },
 
     {
@@ -131,7 +140,8 @@ export const tasks: Task[] = [
         description: "Where cold things stay.",
         type: "location",
         completed: false,
-        approved: false
+        approved: false,
+        x: 340, y: 2190
     },
 
     {
@@ -140,7 +150,8 @@ export const tasks: Task[] = [
         description: "Solve the final riddle.",
         type: "location",
         completed: false,
-        approved: false
+        approved: false,
+        x: 170, y: 2360
     },
 
     {
@@ -149,7 +160,8 @@ export const tasks: Task[] = [
         description: "Enter the locker PIN.",
         type: "locker",
         completed: false,
-        approved: false
+        approved: false,
+        x: 300, y: 2530
     }
 
 ];

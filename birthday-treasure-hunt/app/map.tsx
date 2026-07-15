@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Pressable, Modal, TextInput, ScrollView, Dimensions, Platform } from 'react-native';
 import { router } from 'expo-router';
 import Clouds from "../components/Clouds";
+import { Image } from "react-native";
 import Petals from "../components/Petals";
+import { Animated } from "react-native";
+import { useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
@@ -10,13 +13,6 @@ import Svg, { Path } from "react-native-svg";
 import { tasks } from "../data/tasks";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const trees = [
-  { left: 25, top: 260 },
-  { left: 300, top: 520 },
-  { left: 40, top: 860 },
-  { left: 310, top: 1180 },
-  { left: 35, top: 1500 },
-];
 
 const flowers = [
   { left: 280, top: 300, color: "#FF7EB6" },
@@ -49,6 +45,7 @@ const getCustomIcon = (type: string) => {
 
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
+import CherryBlossomTree from '../components/trees';
 
 export default function Map() {
   const [activeTasks, setActiveTasks] = useState(tasks);
@@ -59,22 +56,6 @@ export default function Map() {
 
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-
-  // Helper calculation to find the exact center coordinate (X, Y) for any task node
-  const getNodeCenter = (index: number) => {
-    const rowHeight = 150;
-    const startY = 60;
-
-    // Smooth horizontal serpentine winding path pattern
-    // Shifts elements left/right across the center line iteratively
-    const xAmplitude = (SCREEN_WIDTH - 120) / 2;
-    const centerX = SCREEN_WIDTH / 2;
-
-    const x = centerX + Math.sin(index * 1.2) * xAmplitude;
-    const y = startY + index * rowHeight;
-
-    return { x, y };
-  };
 
 
   const handlePickImage = async () => {
@@ -91,7 +72,37 @@ export default function Map() {
       setProofInput(result.assets[0].uri);
     }
   };
+  const trees = [
+  { left: -20, top: 80, scale: 1.1 },
+  { left: 290, top: 320, scale: 1.3 },
+  { left: -30, top: 650, scale: 1.15 },
+  { left: 300, top: 980, scale: 1.25 },
+  { left: -10, top: 1350, scale: 1.2 },
+  { left: 290, top: 1700, scale: 1.35 },
+];
+  const d = createSmoothPath(tasks);
+  function createSmoothPath(points: { x: number; y: number }[]) {
+  if (points.length < 2) return "";
 
+  let d = `M ${points[0].x} ${points[0].y}`;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] || points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] || p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+  }
+
+  return d;
+}
   const handleStartRecording = async () => {
     try {
       const permission = await Audio.requestPermissionsAsync();
@@ -136,7 +147,6 @@ export default function Map() {
     setProofInput('');
     alert("✨ Evidence uploaded successfully!");
   };
-
   return (
     <LinearGradient
    colors={["#AEE7FF",
@@ -164,20 +174,43 @@ export default function Map() {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 120 }}
     >
+       <View style={{ height: 2200 }}>
   <Svg
     width="100%"
-    height="1700"
-    viewBox="0 0 400 1700"
+    height="2200"
+    //viewBox="0 0 400 1700"
     style={styles.svg}
   >
-    {tasks.map((task) => (
+  <Path
+    d={d}
+    stroke="#C8A042"
+    strokeWidth={58}
+    fill="none"
+    strokeLinecap="round"
+/>
+<Path
+    d={d}
+    stroke="#E8C35C"
+    strokeWidth={50}
+    fill="none"
+    strokeLinecap="round"
+/>
+<Path
+    d={d}
+    stroke="#FFE69A"
+    strokeWidth={34}
+    fill="none"
+    strokeLinecap="round"
+/>
+  </Svg>
+   {tasks.map((task) => (
       <Pressable
   key={task.id}
   style={[
     styles.flowerContainer,
     {
-      left: task.x - 45,
-      top: task.y - 45,
+      left: task.x - 50,
+      top: task.y - 50,
     },
   ]}
 >
@@ -217,19 +250,12 @@ export default function Map() {
 </Pressable>
 ))}
 {trees.map((tree, index) => (
-  <View
+  <CherryBlossomTree
     key={index}
-    style={[
-      styles.tree,
-      {
-        left: tree.left,
-        top: tree.top,
-      },
-    ]}
-  >
-    <View style={styles.treeTop} />
-    <View style={styles.treeTrunk} />
-  </View>
+    left={tree.left}
+    top={tree.top}
+    scale={tree.scale}
+  />
 ))}
 {flowers.map((flower, index) => (
   <View
@@ -262,41 +288,7 @@ export default function Map() {
     ]}
   />
 ))}
-    <Path
-      d="
-      M 200 180
-      C 320 170, 320 250, 200 340
-      C 70 430, 70 520, 200 610
-      C 330 700, 330 790, 200 880
-      C 60 980, 60 1080, 200 1170
-      C 330 1260, 330 1350, 200 1440
-      C 80 1520, 80 1600, 200 1660
-      "
-      stroke="#E8C35C"
-      strokeWidth="38"
-      opacity={0.55}
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-
-    <Path
-      d="
-      M 200 180
-      C 320 170, 320 250, 200 340
-      C 70 430, 70 520, 200 610
-      C 330 700, 330 790, 200 880
-      C 60 980, 60 1080, 200 1170
-      C 330 1260, 330 1350, 200 1440
-      C 80 1520, 80 1600, 200 1660
-      "
-      stroke="#FFE69A"
-      strokeWidth="24"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+</View>
 </ScrollView>
 
       {/* SYSTEM MISSION MODAL CONTAINER */}
@@ -375,29 +367,12 @@ export default function Map() {
 }
 
 const styles = StyleSheet.create({
-  tree: {
+explorer: {
   position: "absolute",
-  alignItems: "center",
+  width: 70,
+  height: 70,
+  zIndex: 999,
 },
-
-treeTop: {
-  width: 42,
-  height: 42,
-  borderRadius: 21,
-  backgroundColor: "#4CAF50",
-
-  shadowColor: "#2E7D32",
-  shadowOpacity: 0.35,
-  shadowRadius: 8,
-},
-
-treeTrunk: {
-  width: 8,
-  height: 18,
-  backgroundColor: "#8D6E63",
-  marginTop: -2,
-},
-
 flowerDecoration: {
   position: "absolute",
   width: 24,
