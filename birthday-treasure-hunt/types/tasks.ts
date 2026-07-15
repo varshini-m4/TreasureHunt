@@ -8,25 +8,16 @@ export type TaskType =
   | "memory"
   | "location"
   | "locker";
-
 export interface Task {
-
-  id: number;
-
+  id: number | string;
   title: string;
-
   description: string;
-
   type: TaskType;
-
   reward?: string;
-
   completed: boolean;
-
   approved: boolean;
-
-  screen?: string;
+  screen?: string | any;
   x?: number;
   y?: number;
-
+  emoji?: any;
 }

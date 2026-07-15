@@ -1,13 +1,12 @@
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   ImageBackground,
   StyleSheet,
   Text,
-  View,
-  TextInput,
+  TextInput
 } from "react-native";
-import { router } from "expo-router";
 import PrimaryButton from "../components/PrimaryButton";
 
 export default function Home() {
@@ -118,23 +117,23 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   input: {
-  width: "100%",
-  backgroundColor: "#fff",
-  borderWidth: 1,
-  borderColor: "#D0D7DE",
-  borderRadius: 12,
-  paddingHorizontal: 15,
-  paddingVertical: 12,
-  fontSize: 16,
-  marginBottom: 10,
-},
+    width: "100%",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#D0D7DE",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 10,
+  },
 
-error: {
-  color: "#E53935",
-  fontSize: 14,
-  marginBottom: 15,
-  alignSelf: "flex-start",
-},
+  error: {
+    color: "#E53935",
+    fontSize: 14,
+    marginBottom: 15,
+    alignSelf: "flex-start",
+  },
 });
 
 

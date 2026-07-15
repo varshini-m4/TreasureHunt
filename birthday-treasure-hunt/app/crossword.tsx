@@ -50,7 +50,7 @@ const crossword = [
 ];
 
 export default function Crossword() {
-      const inputRefs = useRef<any[][]>(
+  const inputRefs = useRef<any[][]>(
     crossword.map((word) =>
       word.answer
         .split("")
@@ -63,37 +63,37 @@ export default function Crossword() {
     )
   );
 
-const updateLetter = (
-  wordIndex: number,
-  letterIndex: number,
-  value: string
-) => {
+  const updateLetter = (
+    wordIndex: number,
+    letterIndex: number,
+    value: string
+  ) => {
 
-  const copy = [...answers];
+    const copy = [...answers];
 
-  const letter = value
-    .toUpperCase()
-    .slice(-1);
+    const letter = value
+      .toUpperCase()
+      .slice(-1);
 
-  copy[wordIndex][letterIndex] = letter;
+    copy[wordIndex][letterIndex] = letter;
 
-  setAnswers(copy);
+    setAnswers(copy);
 
 
-  if (
-    letter &&
-    letterIndex <
+    if (
+      letter &&
+      letterIndex <
       crossword[wordIndex].answer.length - 1
-  ) {
+    ) {
 
-    inputRefs[wordIndex]
+      inputRefs[wordIndex]
       [letterIndex + 1]
-      .current
-      ?.focus();
+        .current
+        ?.focus();
 
-  }
+    }
 
-};
+  };
 
   const submit = () => {
 
@@ -145,7 +145,7 @@ const updateLetter = (
         <Text style={styles.subtitle}>
           Solve all the clues.
         </Text>
-                {
+        {
           crossword.map((item, wordIndex) => (
 
             <View
@@ -164,9 +164,9 @@ const updateLetter = (
                   item.answer.split("").map((_, letterIndex) => (
 
                     <TextInput
-                     ref={
-    inputRefs[wordIndex][letterIndex]
-  }
+                      ref={
+                        inputRefs[wordIndex][letterIndex]
+                      }
                       key={letterIndex}
                       style={[
                         styles.box,
