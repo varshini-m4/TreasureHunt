@@ -26,8 +26,9 @@ export const fetchTasks = async () => {
     }
 };
 
-export const submitProof = async (taskId: string | number, fileBase64: string, fileMimeType: string, fileName: string) => {
+export const submitProof = async (taskId: string | number, fileBase64: string, fileMimeType: string, fileName: string, isNotMediaFile = false) => {
     try {
+        console.log(`Submitting proof for taskId: ${taskId}, fileName: ${fileName}, fileMimeType: ${fileMimeType}`);
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
@@ -38,10 +39,10 @@ export const submitProof = async (taskId: string | number, fileBase64: string, f
             body: JSON.stringify({
                 action: "updateTaskAndUpload",
                 taskId: taskId,
-                status: "completed",
                 fileBase64,
                 fileMimeType,
-                fileName
+                fileName,
+                isNotMediaFile: isNotMediaFile
             })
         });
 
@@ -50,9 +51,9 @@ export const submitProof = async (taskId: string | number, fileBase64: string, f
         // We handle this immediately and exit before the app can run response.json()!
         if (response.type === 'opaque' || response.status === 0) {
             console.log("Web upload completed securely via no-cors pipeline.");
-            return { 
-                status: "success", 
-                message: "✨ Evidence uploaded and sheet updated successfully!" 
+            return {
+                status: "success",
+                message: "✨ Evidence uploaded and sheet updated successfully!"
             };
         }
 
@@ -65,11 +66,11 @@ export const submitProof = async (taskId: string | number, fileBase64: string, f
 
         const json = JSON.parse(textData);
         if (json.status === "success") {
-            console.log("Successfully submitted proof:", json.data);
-            return json; 
+            console.log("Successfully submitted proof:", json);
+            return json;
         } else {
-            console.error("Backend Error:", json.message);
-            return json; 
+            console.error("Backend Error:", json);
+            return json;
         }
     } catch (error) {
         console.error("Network Error calling Google Web App:", error);

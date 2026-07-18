@@ -7,7 +7,8 @@ export type TaskType =
   | "status"
   | "memory"
   | "location"
-  | "locker";
+  | "locker"
+  | "clue";
 export interface Task {
   _id: number;
   id: number | string;
@@ -21,4 +22,6 @@ export interface Task {
   x?: number;
   y?: number;
   emoji?: any;
+  isNotMediaFile?: boolean;
+  matchedAnswer?: string;
 }

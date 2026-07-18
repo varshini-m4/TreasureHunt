@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import PrimaryButton from "../components/PrimaryButton";
 import { router } from "expo-router";
+import { submitProof } from '../data/taskHandler'
 
 const crossword = [
   {
@@ -95,41 +96,17 @@ export default function Crossword() {
 
   };
 
-  const submit = () => {
-
-    let correct = true;
-
-    crossword.forEach((item, index) => {
-
-      const entered =
-        answers[index].join("");
-
-      if (
-        entered.toUpperCase() !==
-        item.answer
-      ) {
-        correct = false;
+  const submit = async () => {
+    const isCorrect = crossword.every((item, index) => answers[index].join("").toUpperCase() === item.answer);
+    if (isCorrect) {
+      const result = await submitProof("SOLVE_BIRTHDAY_CROSSWORD", "", "text/plain", "crossword_solved.txt", true);
+      if (result.status === "success") {
+        Alert.alert("🎉 Mission Complete", "Amazing! Puzzle solved.");
+        router.push("/map");
+        return;
       }
-
-    });
-
-    if (correct) {
-      Alert.alert(
-        "🎉 Mission Complete",
-        "Amazing! Puzzle solved."
-      );
-
-      // router.push("/nexttask");
-
-    } else {
-
-      Alert.alert(
-        "❌ Incorrect",
-        "Some answers are wrong."
-      );
-
     }
-
+    Alert.alert("❌ Incorrect", "Some answers are wrong.");
   };
 
   return (

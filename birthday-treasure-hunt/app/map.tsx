@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
+import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder, useAudioPlayer } from 'expo-audio';
 import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
@@ -80,6 +80,8 @@ export default function Map() {
   // Modern Audio recording initialization
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [isRecording, setIsRecording] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const previewPlayer = useAudioPlayer(null);
 
   // ==========================================
   // ACTION 1: FETCH TASKS ON COMPONENT MOUNT
@@ -168,7 +170,13 @@ export default function Map() {
         alert("Microphone permission required!");
         return;
       }
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+
+      // Explicitly configure behavior for both recording and playback routing
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true
+      });
+
       await recorder.prepareToRecordAsync();
       await recorder.record();
       setIsRecording(true);
@@ -179,13 +187,52 @@ export default function Map() {
 
   const handleStopRecording = async () => {
     try {
-      setIsRecording(false);
+      // 1. Await the native stop procedure FIRST to finish writing audio data
       await recorder.stop();
+      setIsRecording(false);
+
+      // 2. Fetch the validated output file URI
       const uri = recorder.uri;
-      setProofInput(uri || '');
-      alert("🎵 Audio clip recorded successfully!");
+
+      if (uri) {
+        console.log("Audio file saved at:", uri);
+        setProofInput(uri);
+        previewPlayer.replace({ uri });
+        console.log("Preview player initialized:", previewPlayer);
+        alert("🎵 Audio clip recorded successfully!");
+      } else {
+        alert("Could not locate the audio path file.");
+      }
+
+      // 3. Reset Audio Mode so playback routes back to standard loud speakers
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true
+      });
     } catch (err) {
       console.error('Failed to stop recording', err);
+      setIsRecording(false);
+    }
+  };
+
+
+  const handlePlayPreview = async () => {
+    if (!proofInput) return;
+    try {
+      // 1. CRITICAL: Turn off recording session mode so iOS/Android routes audio 
+      // to the external phone loudspeaker instead of the quiet telephone earpiece!
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true
+      });
+      console.log("Audio mode set for playback. Starting preview...");
+      console.log(previewPlayer);
+      // 2. Reset the track marker back to zero and play
+      previewPlayer.seekTo(0);
+      previewPlayer.play();
+      setPlaying(true);
+    } catch (err) {
+      console.error("Failed to play audio preview", err);
     }
   };
 
@@ -193,8 +240,14 @@ export default function Map() {
   // ACTIONS 2 & 3: UPDATE SHEET STATUS + UPLOAD PROOF
   // ==========================================
   const handleProofSubmission = async () => {
-    if (selectedTask?.type === "crossword") {
+    if (selectedTask?.screen) {
       router.push(selectedTask.screen);
+      return;
+    }
+
+    if (selectedTask?.type === "clue") {
+      const result = await submitProof(selectedTask.id, "", "", "", selectedTask?.isNotMediaFile);
+      handleResult(result);
       return;
     }
 
@@ -245,26 +298,16 @@ export default function Map() {
       else {
         // --- NATIVE STRATEGY (iOS/Android - SDK 54 compliant) ---
         // on Native devices, proofInput holds the local file system path string
-        const file = new File(proofInput);
+        const cleanPath = Platform.OS === 'android'
+          ? proofInput
+          : proofInput.replace(/^file:\/\//, "");
+        const file = new File(cleanPath);
         fileBase64 = await file.base64();
       }
 
       // 3. Dispatch data payload to Google Apps Script
       const result = await submitProof(selectedTask.id, fileBase64, fileMimeType, fileName);
-
-      // 4. Update local state on success
-      if (result.status === "success") {
-        const updated = activeTasks.map(t =>
-          t.id === selectedTask.id ? { ...t, completed: true } : t
-        );
-        setActiveTasks(updated);
-        setSelectedTask({} as Task);
-        setProofInput('');
-        setCurrentActiveId(currentActiveId + 1);
-        alert("✨ Evidence uploaded successfully!");
-      } else {
-        alert(`Error from Script: ${result.message}`);
-      }
+      handleResult(result);
     } catch (err) {
       console.error(err);
       alert("Failed to submit proof. Check connection or file type compatibility.");
@@ -272,6 +315,21 @@ export default function Map() {
       setSubmitting(false);
     }
   };
+
+  const handleResult = (result: any) => {
+    if (result.status === "success") {
+      const updated = activeTasks.map(t =>
+        t.id === selectedTask.id ? { ...t, completed: true } : t
+      );
+      setActiveTasks(updated);
+      setSelectedTask({} as Task);
+      setProofInput('');
+      setCurrentActiveId(currentActiveId + 1);
+      alert("✨ Evidence uploaded successfully!");
+    } else {
+      alert(`Error from Script: ${result.message}`);
+    }
+  }
 
   if (loading) {
     return (
@@ -426,12 +484,34 @@ export default function Map() {
 
                 {selectedTask?.type === "audio" && (
                   <View style={styles.mediaUploadBox}>
-                    <Pressable
-                      style={[styles.mediaButton, isRecording && { backgroundColor: '#DC2626' }]}
-                      onPress={isRecording ? handleStopRecording : handleStartRecording}
-                    >
-                      <Text style={styles.mediaButtonText}>{isRecording ? "🛑 Stop" : "🎙️ Record Audio"}</Text>
-                    </Pressable>
+                    <View style={[styles.actionRow, { width: '100%', flexDirection: 'column', gap: 10 }]}>
+
+                      {/* Recording Control Button */}
+                      <Pressable
+                        style={[styles.mediaButton, isRecording && { backgroundColor: '#DC2626' }]}
+                        onPress={isRecording ? handleStopRecording : handleStartRecording}
+                      >
+                        <Text style={styles.mediaButtonText}>
+                          {isRecording ? "🛑 Stop Recording" : "🎙️ Record Audio"}
+                        </Text>
+                      </Pressable>
+
+                      {/* Audio Playback Test Preview Button */}
+                      {proofInput ? (
+                        <Pressable
+                          style={[
+                            styles.mediaButton,
+                            { backgroundColor: playing ? '#64748B' : '#22C55E' } // Gray if playing, green if ready
+                          ]}
+                          onPress={!playing ? handlePlayPreview : () => { previewPlayer.pause(); setPlaying(false); }}
+                        >
+                          <Text style={styles.mediaButtonText}>
+                            {playing ? "⏸️ Pause Preview" : "▶️ Play Preview Track"}
+                          </Text>
+                        </Pressable>
+                      ) : null}
+
+                    </View>
                   </View>
                 )}
 
@@ -446,7 +526,7 @@ export default function Map() {
                 )}
 
                 <View style={styles.actionRow}>
-                  <Pressable style={[styles.modalBtn, styles.btnBack]} onPress={() => setSelectedTask({} as Task)}>
+                  <Pressable style={[styles.modalBtn, styles.btnBack]} onPress={() => { setSelectedTask({} as Task); setProofInput(''); }}>
                     <Text style={styles.btnLabel}>Close</Text>
                   </Pressable>
                   <Pressable
@@ -463,8 +543,11 @@ export default function Map() {
                 </View>
               </View>
             ) : (
-              <Pressable style={[styles.modalBtn, styles.btnBack, { width: '100%' }]} onPress={() => setSelectedTask({} as Task)}>
-                <Text style={styles.btnLabel}>Back to Map Trail</Text>
+              <Pressable
+                style={[styles.modalBtn, styles.btnBack, { width: '100%', flex: 0 }]}
+                onPress={() => setSelectedTask({} as Task)}
+              >
+                <Text style={styles.btnLabel}>Back to Map</Text>
               </Pressable>
             )}
           </View>
@@ -603,10 +686,10 @@ const styles = StyleSheet.create({
   descriptionText: { color: '#334155', fontSize: 14, lineHeight: 22, marginBottom: 16 },
   inputBox: { backgroundColor: '#F1F5F9', color: '#1E293B', borderRadius: 12, padding: 14, fontSize: 14, borderWidth: 2, borderColor: '#CBD5E1', marginBottom: 20 },
   actionRow: { flexDirection: 'row', gap: 12 },
-  modalBtn: { flex: 1, padding: 14, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  btnBack: { backgroundColor: '#64748B' },
+  modalBtn: { flex: 1, padding: 18, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  btnBack: { backgroundColor: '#8cbafa' },
   btnSend: { backgroundColor: '#FF6B9D' },
-  btnLabel: { color: '#FFF', fontWeight: '900', fontSize: 14 },
+  btnLabel: { color: '#ed0d0d', fontWeight: '900', fontSize: 12 },
   mediaUploadBox: { backgroundColor: '#F1F5F9', borderRadius: 16, padding: 16, borderWidth: 2, borderColor: '#CBD5E1', marginBottom: 20, alignItems: 'center', justifyContent: 'center' },
   mediaButton: { backgroundColor: '#38BDF8', width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   mediaButtonText: { color: '#FFF', fontWeight: '900', fontSize: 14 },
