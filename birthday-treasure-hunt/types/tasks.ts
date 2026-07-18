@@ -9,6 +9,7 @@ export type TaskType =
   | "location"
   | "locker";
 export interface Task {
+  _id: number;
   id: number | string;
   title: string;
   description: string;

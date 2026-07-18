@@ -75,13 +75,11 @@ export default function Map() {
   const [selectedTask, setSelectedTask] = useState<Task>({} as Task);
   const [proofInput, setProofInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [currentActiveId, setCurrentActiveId] = useState<number>(0);
 
   // Modern Audio recording initialization
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [isRecording, setIsRecording] = useState(false);
-
-  // Dynamic calculation for progress paths
-  const currentActiveId = (activeTasks || []).find(t => !t.completed)?.id || 16;
 
   // ==========================================
   // ACTION 1: FETCH TASKS ON COMPONENT MOUNT
@@ -94,6 +92,7 @@ export default function Map() {
       // Ensure we only set state if tasks is a valid array
       if (Array.isArray(tasks)) {
         setActiveTasks(tasks);
+        setCurrentActiveId((tasks || []).find(t => !t.completed)?._id);
       } else {
         console.warn("fetchTasks did not return an array. Falling back to empty map.");
         setActiveTasks([]);
@@ -261,7 +260,8 @@ export default function Map() {
         setActiveTasks(updated);
         setSelectedTask({} as Task);
         setProofInput('');
-        alert("✨ Evidence uploaded and sheet updated successfully!");
+        setCurrentActiveId(currentActiveId + 1);
+        alert("✨ Evidence uploaded successfully!");
       } else {
         alert(`Error from Script: ${result.message}`);
       }
@@ -343,9 +343,11 @@ export default function Map() {
           {activeTasks.map((task, index) => {
             const { x, y } = getNodeCenter(index);
             const isCompleted = task.completed;
-            const isActive = task.id === currentActiveId;
-            const isLocked = task.id > currentActiveId;
+            const isActive = task._id === currentActiveId;
+            const isLocked = task.completed === false && task._id > currentActiveId;
             const iconEmoji = getCustomIcon(task.type);
+
+            console.log(`Rendering Task ID: ${task.id}, Active: ${isActive}, Completed: ${isCompleted}, Locked: ${isLocked}`);
 
             return (
               <Pressable
@@ -355,7 +357,7 @@ export default function Map() {
                 style={[
                   styles.flowerContainer,
                   { left: x - 42, top: y - 42 },
-                  isLocked && { opacity: 0.55 }
+                  !isCompleted && !isActive && { opacity: 0.55 }
                 ]}
               >
                 {/* Flower Petal Graphics */}
@@ -375,13 +377,13 @@ export default function Map() {
                   isCompleted && styles.completedCenter
                 ]}>
                   <Text style={styles.nodeEmoji}>
-                    {isCompleted ? "🌟" : iconEmoji}
+                    {iconEmoji}
                   </Text>
                 </View>
 
                 {/* Numerical Badge Centered underneath the Flower */}
                 <View style={styles.numberBadge}>
-                  <Text style={styles.badgeText}>{task.id}</Text>
+                  <Text style={styles.badgeText}>{task._id}</Text>
                 </View>
               </Pressable>
             );
@@ -398,8 +400,8 @@ export default function Map() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.modalTitle}>{selectedTask?.title}</Text>
                 <Text style={styles.statusLabel}>
-                  Status: <Text style={{ color: selectedTask?.completed ? '#F8E8B8' : '#FFB300', fontWeight: 'bold' }}>
-                    {selectedTask?.completed ? "PENDING APPROVAL" : "ACTIVE"}
+                  Status: <Text style={{ color: selectedTask?.completed ? '#00fd33' : '#FFB300', fontWeight: 'bold' }}>
+                    {selectedTask?.completed ? "COMPLETED" : "ACTIVE"}
                   </Text>
                 </Text>
               </View>

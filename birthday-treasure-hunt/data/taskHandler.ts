@@ -38,7 +38,7 @@ export const submitProof = async (taskId: string | number, fileBase64: string, f
             body: JSON.stringify({
                 action: "updateTaskAndUpload",
                 taskId: taskId,
-                status: "Complete",
+                status: "completed",
                 fileBase64,
                 fileMimeType,
                 fileName
