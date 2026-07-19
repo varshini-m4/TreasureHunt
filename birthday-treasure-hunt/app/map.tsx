@@ -380,25 +380,6 @@ export default function Map() {
               scale={tree.scale}
             />
           ))}
-
-          {/* DECORATIVE SMALL FLOWERS */}
-          {flowers.map((flower, index) => (
-            <View
-              key={`flower-decor-${index}`}
-              style={[styles.flowerDecoration, { left: flower.left, top: flower.top }]}
-            >
-              <View style={[styles.flowerCenter, { backgroundColor: flower.color }]} />
-            </View>
-          ))}
-
-          {/* BUSHES */}
-          {bushes.map((bush, index) => (
-            <View
-              key={`bush-${index}`}
-              style={[styles.bush, { left: bush.left, top: bush.top }]}
-            />
-          ))}
-
           {/* FLOWER TRAIL NODES */}
           {activeTasks.map((task, index) => {
             const { x, y } = getNodeCenter(index);
@@ -469,7 +450,12 @@ export default function Map() {
 
             <Text style={styles.sectionHeading}>YOUR MISSION:</Text>
             <Text style={styles.descriptionText}>{selectedTask?.description}</Text>
-
+            {selectedTask?.reward && selectedTask?.completed && (
+              <Text style={styles.descriptionText}>
+                <Text style={styles.rewardLabel}>Reward: </Text>
+                <Text style={styles.rewardValue}>{selectedTask?.reward}</Text>
+              </Text>
+            )}
             {!selectedTask?.completed ? (
               <View>
                 {!selectedTask?.screen && selectedTask?.type != "clue" && <Text style={styles.sectionHeading}>UPLOAD SUBMISSION PROOF:</Text>}
@@ -682,4 +668,14 @@ const styles = StyleSheet.create({
   mediaButton: { backgroundColor: '#38BDF8', width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   mediaButtonText: { color: '#FFF', fontWeight: '900', fontSize: 14 },
   uploadedSuccessText: { color: '#22C55E', fontSize: 13, fontWeight: '700', marginBottom: 12 },
+  // 💡 Label gets a bold, distinct theme color
+  rewardLabel: {
+    color: '#4dff00',
+    fontWeight: '700',
+  },
+  // 💡 Value gets a vibrant accent color (like a bright birthday gold/amber)
+  rewardValue: {
+    color: '#0e440c',
+    fontWeight: '800',
+  },
 });
