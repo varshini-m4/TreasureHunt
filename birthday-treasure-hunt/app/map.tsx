@@ -26,28 +26,8 @@ import { Task } from '../types/tasks';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// REPLACE WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
-const GOOGLE_SCRIPT_URL = "YOUR_DEPLOYED_WEB_APP_URL_HERE";
-
-const flowers = [
-  { left: 280, top: 300, color: "#FF7EB6" },
-  { left: 90, top: 460, color: "#FFD966" },
-  { left: 290, top: 740, color: "#CBA6F7" },
-  { left: 80, top: 980, color: "#FF8FAB" },
-  { left: 290, top: 1320, color: "#FFD966" },
-  { left: 120, top: 1650, color: "#FFB3C6" },
-];
-
-const bushes = [
-  { left: 250, top: 900 },
-  { left: 30, top: 620 },
-  { left: 290, top: 1450 },
-];
-
 const trees = [
-  // { left: -20, top: 70, scale: 1.1 },
-  // { left: -30, top: 90, scale: 1.3 },
-   { left: -10, top: 110, scale: 1.35 },
+  { left: -10, top: 110, scale: 1.35 },
   { left: 270, top: 490, scale: 1.3 },
   { left: -20, top: 850, scale: 1.15 },
   { left: 280, top: 1280, scale: 1.25 },
@@ -83,9 +63,6 @@ export default function Map() {
   const [playing, setPlaying] = useState(false);
   const previewPlayer = useAudioPlayer(null);
 
-  // ==========================================
-  // ACTION 1: FETCH TASKS ON COMPONENT MOUNT
-  // ==========================================
   const loadTasks = async () => {
     try {
       setLoading(true);
@@ -236,9 +213,6 @@ export default function Map() {
     }
   };
 
-  // ==========================================
-  // ACTIONS 2 & 3: UPDATE SHEET STATUS + UPLOAD PROOF
-  // ==========================================
   const handleProofSubmission = async () => {
     if (selectedTask?.screen) {
       router.push({ pathname: selectedTask.screen, params: { taskData: JSON.stringify(selectedTask) } });
