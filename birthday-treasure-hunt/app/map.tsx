@@ -56,7 +56,7 @@ const trees = [
 
 const getCustomIcon = (type: string) => {
   switch (type) {
-    case "photo": return "📸";
+    case "photo": return "🖼️";
     case "audio": return "🎵";
     case "sudoku": return "🧩";
     case "movie": return "🎬";
