@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "birthday-treasure-hunt",
+    "name": "Birthday Treasure Hunt",
     "slug": "birthday-treasure-hunt",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,9 +12,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/expo.icon/Assets/explorer.png",
-        "backgroundImage": "./assets/expo.icon/Assets/explorer.png",
-        "monochromeImage": "./assets/expo.icon/Assets/explorer.png"
+        "foregroundImage": "./assets/expo.icon/Assets/explorer_boy.png",
+        "backgroundImage": "./assets/expo.icon/Assets/explorer_boy.png",
+        "monochromeImage": "./assets/expo.icon/Assets/explorer_boy.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.birthdaytreasurehunt"
@@ -32,11 +32,19 @@
           "image": "./assets/expo.icon/Assets/grid.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-audio",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "abb6c838-7e47-4e83-b4b7-c1e16960f84a"
+      }
     }
   }
 }
