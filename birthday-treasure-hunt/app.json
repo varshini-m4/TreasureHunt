@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Birthday Treasure Hunt",
+    "name": "Treasure Hunt",
     "slug": "birthday-treasure-hunt",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,7 +21,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/expo.icon/Assets/grid.png"
+      "favicon": "./assets/expo.icon/Assets/explorer_boy.png"
     },
     "plugins": [
       "expo-router",
@@ -29,7 +29,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
-          "image": "./assets/expo.icon/Assets/grid.png",
+          "image": "./assets/expo.icon/Assets/explorer_boy.png",
           "imageWidth": 76
         }
       ],
