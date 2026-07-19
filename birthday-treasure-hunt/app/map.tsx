@@ -45,12 +45,13 @@ const bushes = [
 ];
 
 const trees = [
-  { left: -20, top: 80, scale: 1.1 },
-  { left: 290, top: 320, scale: 1.3 },
-  { left: -30, top: 650, scale: 1.15 },
-  { left: 300, top: 980, scale: 1.25 },
-  { left: -10, top: 1350, scale: 1.2 },
-  { left: 290, top: 1700, scale: 1.35 },
+  // { left: -20, top: 70, scale: 1.1 },
+  // { left: -30, top: 90, scale: 1.3 },
+   { left: -10, top: 110, scale: 1.35 },
+  { left: 270, top: 490, scale: 1.3 },
+  { left: -20, top: 850, scale: 1.15 },
+  { left: 280, top: 1280, scale: 1.25 },
+  { left: -10, top: 1750, scale: 1.2 },
 ];
 
 const getCustomIcon = (type: string) => {
@@ -616,7 +617,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   currentCenter: { backgroundColor: "#FFE082" },
-  completedCenter: { backgroundColor: "#B9F6CA", borderColor: "#5D9E1B" },
+  completedCenter: { backgroundColor: "#f4eff3", borderColor: "#f3f5cc" },
   nodeEmoji: { fontSize: 22 },
 
   // Perfectly Centered Bottom Badge
