@@ -56,8 +56,12 @@ const trees = [
 
 const getCustomIcon = (type: string) => {
   switch (type) {
-    case "photo": return "🖼️";
-    case "audio": return "🎵";
+    case "tree": return "🌳";
+    case "audio": return "🎙️";
+    case "walk": return "👣";
+    case "dog": return "🐶🐾";
+    case "heart": return "💖";
+    case "coffee": return "☕";
     case "sudoku": return "🧩";
     case "movie": return "🎬";
     case "decode": return "🔍";
@@ -387,7 +391,7 @@ export default function Map() {
             const isCompleted = task.completed;
             const isActive = task._id === currentActiveId;
             const isLocked = task.completed === false && task._id > currentActiveId;
-            const iconEmoji = getCustomIcon(task.type);
+            const iconEmoji = getCustomIcon(task.icon);
 
             console.log(`Rendering Task ID: ${task.id}, Active: ${isActive}, Completed: ${isCompleted}, Locked: ${isLocked}`);
 

@@ -15,6 +15,7 @@ export interface Task {
   title: string;
   description: string;
   type: TaskType;
+  icon: string;
   reward?: string;
   completed: boolean;
   approved: boolean;
