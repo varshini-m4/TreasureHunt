@@ -9,7 +9,9 @@ import {
   TextInputKeyPressEventData,
   View,
   Alert,
-  Pressable
+  Pressable,
+  KeyboardAvoidingView, // 💡 Imported layout wrapper
+  Platform             // 💡 Imported to handle Android vs iOS behaviors
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../components/PrimaryButton";
@@ -19,10 +21,10 @@ const crossword = [
   { id: 1, clue: "🏸", title: "Favorite sport", answer: "BADMINTON" },
   { id: 2, clue: "🎬", title: "We are always late for...", answer: "MOVIE" },
   { id: 3, clue: "✈️", title: "Planned many times but never happened", answer: "TRIP" },
-  { id: 4, stroke: "✨", title: "Beauty of the gang", answer: "ANGEL" },
+  { id: 4, clue: "✨", title: "Beauty of the gang", answer: "ANGEL" },
   { id: 5, clue: "🍫", title: "Which sweet treat would you never say no to?", answer: "CHOCOLATE" },
   { id: 6, clue: "👹", title: "Favourite villain", answer: "MADARA" },
-  { id: 7, clue: "❤️", title: "Most important in life", answer: "FRIENDS" },
+  { id: 7, clue: "🧑‍🤝‍🧑", title: "Most important in life", answer: "FRIENDS" },
 ];
 
 export default function Crossword() {
@@ -64,16 +66,15 @@ export default function Crossword() {
   const submit = async () => {
     let globalMatch = true;
 
-    // 💡 Fix: Deep copy state array cleanly to avoid reference mutation traps
     const updatedAnswers = answers.map((row, index) => {
       const currentWordString = row.join("").toUpperCase();
       const isWordCorrect = currentWordString === crossword[index].answer;
 
       if (!isWordCorrect) {
         globalMatch = false;
-        return Array(crossword[index].answer.length).fill(""); // Reset only the wrong row elements
+        return Array(crossword[index].answer.length).fill("");
       }
-      return row; // Keep the correct elements unchanged
+      return row;
     });
 
     if (globalMatch) {
@@ -86,7 +87,6 @@ export default function Crossword() {
         return;
       }
     } else {
-      // Apply the cleared row state arrays back to the rendering layer
       setAnswers(updatedAnswers);
       Alert.alert("❌ Incorrect", "Some answers are wrong. Incorrect fields have been cleared out for you!");
     }
@@ -94,50 +94,59 @@ export default function Crossword() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>🧩 Birthday Crossword</Text>
-        <Text style={styles.subtitle}>Solve all the clues.</Text>
+      {/* 💡 UI Fix 1: Added KeyboardAvoidingView so the layout shifts upward smoothly */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardContainer}
+      >
+        {/* 💡 UI Fix 2: Added keyboardDismissMode so scrolling automatically tucks it away */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>🧩 Birthday Crossword</Text>
+          <Text style={styles.subtitle}>Solve all the clues.</Text>
 
-        {crossword.map((item, wordIndex) => (
-          <View key={item.id} style={styles.wordCard}>
+          {crossword.map((item, wordIndex) => (
+            <View key={item.id} style={styles.wordCard}>
+              <View style={styles.clueHeaderRow}>
+                <Text style={styles.clue}>{item.id}. {item.title}</Text>
+                <Pressable
+                  onPress={() => Alert.alert("Clue Hint", item.clue || "Special Character", [{ text: "OK" }])}
+                  style={styles.hintPressable}
+                >
+                  <Text style={styles.clueIcon}>💡</Text>
+                </Pressable>
+              </View>
 
-            {/* 💡 UI Fix: Text wrapper header structure allows direct flex row alignment with hint bulb */}
-            <View style={styles.clueHeaderRow}>
-              <Text style={styles.clue}>{item.id}. {item.title}</Text>
-              <Pressable
-                onPress={() => Alert.alert("Clue Hint", item.clue || "Special Character", [{ text: "OK" }])}
-                style={styles.hintPressable}
-              >
-                <Text style={styles.clueIcon}>💡</Text>
-              </Pressable>
+              <View style={styles.boxRow}>
+                {item.answer.split("").map((_, letterIndex) => (
+                  <TextInput
+                    key={letterIndex}
+                    ref={(ref) => { inputRefs[wordIndex][letterIndex] = ref; }}
+                    style={[
+                      styles.box,
+                      answers[wordIndex][letterIndex] ? styles.filledBox : null
+                    ]}
+                    value={answers[wordIndex][letterIndex]}
+                    maxLength={1}
+                    autoCapitalize="characters"
+                    placeholder="?"
+                    placeholderTextColor="#3A4F66"
+                    onChangeText={(text) => updateLetter(wordIndex, letterIndex, text)}
+                    onKeyPress={(e) => handleKeyPress(e, wordIndex, letterIndex)}
+                  />
+                ))}
+              </View>
             </View>
+          ))}
 
-            <View style={styles.boxRow}>
-              {item.answer.split("").map((_, letterIndex) => (
-                <TextInput
-                  key={letterIndex}
-                  ref={(ref) => { inputRefs[wordIndex][letterIndex] = ref; }}
-                  style={[
-                    styles.box,
-                    answers[wordIndex][letterIndex] ? styles.filledBox : null
-                  ]}
-                  value={answers[wordIndex][letterIndex]}
-                  maxLength={1}
-                  autoCapitalize="characters"
-                  placeholder="?"
-                  placeholderTextColor="#3A4F66"
-                  onChangeText={(text) => updateLetter(wordIndex, letterIndex, text)}
-                  onKeyPress={(e) => handleKeyPress(e, wordIndex, letterIndex)}
-                />
-              ))}
-            </View>
+          <View style={styles.btnWrapper}>
+            <PrimaryButton title="Submit Puzzle" onPress={submit} />
           </View>
-        ))}
-
-        <View style={styles.btnWrapper}>
-          <PrimaryButton title="Submit Puzzle" onPress={submit} />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView >
   );
 }
@@ -147,8 +156,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#08121E"
   },
+  // 💡 UI Fix Style Rule: Allows the avoiding container view to occupy absolute viewport size
+  keyboardContainer: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 60, // Boosted bottom padding so the submit button lifts above the keyboard line
   },
   title: {
     color: "#FFD54F",
@@ -175,13 +188,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
-    flexWrap: "wrap", // Protects longer text rows from pushing out icon off screen
+    flexWrap: "wrap",
   },
   clue: {
     color: "white",
     fontSize: 15,
     fontWeight: "600",
-    flexShrink: 1,   // Allows text to occupy up to the remaining layout width
+    flexShrink: 1,
   },
   hintPressable: {
     paddingHorizontal: 6,
