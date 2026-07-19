@@ -67,7 +67,7 @@ export default function DecodeScreen() {
     const compiledSubmission = letters.join("").toUpperCase();
 
     if (compiledSubmission !== solutionWord) {
-      alert("❌ Incorrect Solution. YET MISSING actual answer. Check your letter arrangements and try again!");
+      alert("❌ Incorrect Solution. YET MISSING ACTUAL ANSWER!");
       return;
     }
 
@@ -83,7 +83,7 @@ export default function DecodeScreen() {
       );
 
       if (result.status === "success") {
-        alert("🎉 Mission Complete. Amazing! You successfully broke the code scheme")
+        alert("🎉 Mission Complete. Amazing! You successfully broke the code")
         router.replace("/map");
       } else {
         alert("Backend Error - Failed to update task records.");
@@ -128,7 +128,9 @@ export default function DecodeScreen() {
         {submitting ? (
           <ActivityIndicator size="large" color="#FFD54F" style={{ marginTop: 24 }} />
         ) : (
-          <PrimaryButton title="Verify Code Phrase" onPress={handleSubmit} />
+          <View style={styles.btnWrapper}>
+            <PrimaryButton title="Verify Code" onPress={handleSubmit} />
+          </View>
         )}
 
       </ScrollView>
@@ -152,6 +154,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center",
     marginBottom: 12,
+    textTransform: "uppercase",
   },
   subtitle: {
     color: "#E2E8F0",
@@ -190,4 +193,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E3A5F",
     borderColor: "#FFF",
   },
+  btnWrapper: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 30,
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  }
 });
