@@ -430,20 +430,18 @@ export default function Map() {
                 <View style={[styles.smallPetal, { bottom: 8, left: 8 }]} />
                 <View style={[styles.smallPetal, { bottom: 8, right: 8 }]} />
 
-                {/* Core Node Center */}
                 <View style={[
                   styles.centerCircle,
                   isActive && styles.currentCenter,
                   isCompleted && styles.completedCenter
                 ]}>
-                  <Text style={styles.nodeEmoji}>
-                    {iconEmoji}
-                  </Text>
-                </View>
-
-                {/* Numerical Badge Centered underneath the Flower */}
-                <View style={styles.numberBadge}>
-                  <Text style={styles.badgeText}>{task._id}</Text>
+                  {isCompleted ? (
+                    // Show the success icon emoji when complete
+                    <Text style={styles.nodeEmoji}>{iconEmoji}</Text>
+                  ) : (
+                    // Show a lock or default state placeholder inside the center circle
+                    <Text style={[styles.nodeEmoji]}>{task._id}</Text>
+                  )}
                 </View>
               </Pressable>
             );
@@ -637,19 +635,7 @@ const styles = StyleSheet.create({
 
   // Perfectly Centered Bottom Badge
   numberBadge: {
-    position: "absolute",
-    bottom: -10,
-    left: "50%",
-    marginLeft: -14, // Centering logic: negative half width
-    width: 28,
-    height: 28,
-    borderRadius: 14,
     backgroundColor: "#FF5C8A",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2.5,
-    borderColor: "white",
-    zIndex: 15,
   },
   badgeText: { color: "white", fontWeight: "700", fontSize: 12 },
 
