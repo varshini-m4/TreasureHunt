@@ -1,5 +1,4 @@
-import { Buffer } from 'buffer';
-import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder, useAudioPlayer } from 'expo-audio';
+import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioPlayer, useAudioRecorder } from 'expo-audio';
 import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,13 +8,13 @@ import {
   ActivityIndicator,
   Dimensions,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
-  Platform
+  View
 } from 'react-native';
 import Svg, { Path } from "react-native-svg";
 
@@ -241,7 +240,8 @@ export default function Map() {
   // ==========================================
   const handleProofSubmission = async () => {
     if (selectedTask?.screen) {
-      router.push(selectedTask.screen);
+      router.push({ pathname: selectedTask.screen, params: { taskData: JSON.stringify(selectedTask) } });
+      setSelectedTask({} as Task);
       return;
     }
 
@@ -325,7 +325,9 @@ export default function Map() {
       setSelectedTask({} as Task);
       setProofInput('');
       setCurrentActiveId(currentActiveId + 1);
-      alert("✨ Evidence uploaded successfully!");
+      if (selectedTask?.type !== "clue") {
+        alert("✨ Evidence uploaded successfully!");
+      }
     } else {
       alert(`Error from Script: ${result.message}`);
     }
@@ -472,7 +474,7 @@ export default function Map() {
 
             {!selectedTask?.completed ? (
               <View>
-                <Text style={styles.sectionHeading}>UPLOAD SUBMISSION PROOF:</Text>
+                {!selectedTask?.screen && selectedTask?.type != "clue" && <Text style={styles.sectionHeading}>UPLOAD SUBMISSION PROOF:</Text>}
                 {selectedTask?.type === "photo" && (
                   <View style={styles.mediaUploadBox}>
                     {proofInput ? <Text style={styles.uploadedSuccessText}>📸 Photo Staged!</Text> : null}
@@ -515,7 +517,7 @@ export default function Map() {
                   </View>
                 )}
 
-                {["movie", "decode", "memory", "location", "locker"].includes(selectedTask?.type) && (
+                {["movie", "memory", "location", "locker"].includes(selectedTask?.type) && (
                   <TextInput
                     style={styles.inputBox}
                     placeholder="Type your answer text here..."
@@ -537,7 +539,7 @@ export default function Map() {
                     {submitting ? (
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
-                      <Text style={styles.btnLabel}>{selectedTask?.type === "crossword" ? "Navigate" : "Submit Proof"}</Text>
+                      <Text style={styles.btnLabel}>{selectedTask?.screen ? "Navigate" : selectedTask?.type != "clue" ? "Upload Proof" : "Next"}</Text>
                     )}
                   </Pressable>
                 </View>
