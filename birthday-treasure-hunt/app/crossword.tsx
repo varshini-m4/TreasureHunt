@@ -1,17 +1,20 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-  NativeSyntheticEvent,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  NativeSyntheticEvent, // 💡 Imported layout wrapper
+  Platform // 💡 Imported to handle Android vs iOS behaviors
+  ,
+
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TextInputKeyPressEventData,
-  View,
-  Alert,
-  Pressable,
-  KeyboardAvoidingView, // 💡 Imported layout wrapper
-  Platform             // 💡 Imported to handle Android vs iOS behaviors
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../components/PrimaryButton";
@@ -28,6 +31,7 @@ const crossword = [
 ];
 
 export default function Crossword() {
+  const [submitting, setSubmitting] = useState(false);
   const { taskData } = useLocalSearchParams<{ taskData: string }>();
   const selectedTask = taskData ? JSON.parse(taskData) : {};
 
@@ -64,6 +68,7 @@ export default function Crossword() {
   };
 
   const submit = async () => {
+    setSubmitting(true);
     let globalMatch = true;
 
     const updatedAnswers = answers.map((row, index) => {
@@ -87,6 +92,7 @@ export default function Crossword() {
         return;
       }
     } else {
+      setSubmitting(false);
       setAnswers(updatedAnswers);
       Alert.alert("❌ Incorrect", "Some answers are wrong. Incorrect fields have been cleared out for you!");
     }
@@ -142,9 +148,13 @@ export default function Crossword() {
             </View>
           ))}
 
-          <View style={styles.btnWrapper}>
-            <PrimaryButton title="Submit Puzzle" onPress={submit} />
-          </View>
+          {submitting ? (
+            <ActivityIndicator size="large" color="#FFD54F" style={{ marginTop: 24 }} />
+          ) : (
+            <View style={styles.btnWrapper}>
+              <PrimaryButton title="Submit Puzzle" onPress={submit} />
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView >

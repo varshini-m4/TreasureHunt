@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from "react-native-svg";
 
+import { Buffer } from "buffer";
 import Clouds from "../components/Clouds";
 import Petals from "../components/Petals";
 import CherryBlossomTree from '../components/trees';
@@ -33,21 +34,6 @@ const trees = [
   { left: 280, top: 1280, scale: 1.25 },
   { left: -10, top: 1750, scale: 1.2 },
 ];
-
-const getCustomIcon = (type: string) => {
-  switch (type) {
-    case "photo": return "🖼️";
-    case "audio": return "🎵";
-    case "sudoku": return "🧩";
-    case "movie": return "🎬";
-    case "decode": return "🔍";
-    case "status": return "📱";
-    case "memory": return "💭";
-    case "location": return "📍";
-    case "locker": return "🔐";
-    default: return "🌟";
-  }
-};
 
 export default function Map() {
   const [activeTasks, setActiveTasks] = useState<Task[]>([]);
@@ -220,7 +206,7 @@ export default function Map() {
       return;
     }
 
-    if (selectedTask?.type === "clue") {
+    if (selectedTask?.type === "NONE") {
       const result = await submitProof(selectedTask.id, "", "", "", selectedTask?.isNotMediaFile);
       handleResult(result);
       return;
@@ -240,10 +226,10 @@ export default function Map() {
       let fileMimeType = "text/plain";
 
       // 1. Establish file naming and content types based on task type
-      if (selectedTask.type === "photo") {
+      if (selectedTask.type === "IMAGE") {
         fileMimeType = "image/jpeg";
         fileName += ".jpg";
-      } else if (selectedTask.type === "audio") {
+      } else if (selectedTask.type === "AUDIO") {
         fileMimeType = "audio/m4a";
         fileName += ".m4a";
       } else {
@@ -251,33 +237,38 @@ export default function Map() {
         fileName += ".txt";
       }
 
-      // 2. Cross-Platform Extraction Layer
-      if (Platform.OS === 'web') {
-        // --- WEB STRATEGY ---
-        // proofInput holds a web blob URL string (e.g., "blob:http://...")
-        // We download it back to a local memory blob to read it safely
-        const response = await fetch(proofInput);
-        const blob = await response.blob();
-
-        fileBase64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const result = reader.result as string;
-            const base64Data = result.split(',')[1] || result;
-            resolve(base64Data);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+      if (selectedTask?.isNotMediaFile) {
+        fileBase64 = Buffer.from(proofInput, 'utf-8').toString('base64');
       }
+      // 2. Handle Media Files (Images, Audio, Video) based on runtime platform
       else {
-        // --- NATIVE STRATEGY (iOS/Android - SDK 54 compliant) ---
-        // on Native devices, proofInput holds the local file system path string
-        const cleanPath = Platform.OS === 'android'
-          ? proofInput
-          : proofInput.replace(/^file:\/\//, "");
-        const file = new File(cleanPath);
-        fileBase64 = await file.base64();
+        if (Platform.OS === 'web') {
+          // --- WEB MEDIA STRATEGY ---
+          // proofInput holds a web blob URL string (e.g., "blob:http://...")
+          const response = await fetch(proofInput);
+          const blob = await response.blob();
+
+          fileBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const result = reader.result as string;
+              const base64Data = result.split(',')[1] || result;
+              resolve(base64Data);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        }
+        else {
+          // --- NATIVE MEDIA STRATEGY (iOS/Android - SDK 54 compliant) ---
+          // proofInput holds the local filesystem URI string
+          const cleanPath = Platform.OS === 'android'
+            ? proofInput
+            : proofInput.replace(/^file:\/\//, "");
+
+          const file = new File(cleanPath);
+          fileBase64 = await file.base64();
+        }
       }
 
       // 3. Dispatch data payload to Google Apps Script
@@ -300,8 +291,8 @@ export default function Map() {
       setSelectedTask({} as Task);
       setProofInput('');
       setCurrentActiveId(currentActiveId + 1);
-      if (selectedTask?.type !== "clue") {
-        alert("✨ Evidence uploaded successfully!");
+      if (selectedTask?.type !== "NONE") {
+        alert("✨ File Uploaded Successfully!");
       }
     } else {
       alert(`Error from Script: ${result.message}`);
@@ -360,16 +351,15 @@ export default function Map() {
             const { x, y } = getNodeCenter(index);
             const isCompleted = task.completed;
             const isActive = task._id === currentActiveId;
-            const isLocked = task.completed === false && task._id > currentActiveId;
-            const iconEmoji = getCustomIcon(task.type);
+            const isDisabled = task.completed === false && task._id > currentActiveId;
 
-            console.log(`Rendering Task ID: ${task.id}, Active: ${isActive}, Completed: ${isCompleted}, Locked: ${isLocked}`);
+            console.log(`Rendering Task ID: ${task.id}, Active: ${isActive}, Completed: ${isCompleted}, Disabled: ${isDisabled}`);
 
             return (
               <Pressable
                 key={task.id}
-                disabled={isLocked}
-                onPress={() => setSelectedTask({ ...task, emoji: iconEmoji })}
+                disabled={isDisabled}
+                onPress={() => setSelectedTask(task)}
                 style={[
                   styles.flowerContainer,
                   { left: x - 42, top: y - 42 },
@@ -393,7 +383,7 @@ export default function Map() {
                 ]}>
                   {isCompleted ? (
                     // Show the success icon emoji when complete
-                    <Text style={styles.nodeEmoji}>{iconEmoji}</Text>
+                    <Text style={styles.nodeEmoji}>{task.icon}</Text>
                   ) : (
                     // Show a lock or default state placeholder inside the center circle
                     <Text style={[styles.nodeEmoji]}>{task._id}</Text>
@@ -410,7 +400,7 @@ export default function Map() {
         <View style={styles.overlayContainer}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalBigIcon}>{selectedTask?.emoji}</Text>
+              <Text style={styles.modalBigIcon}>{selectedTask?.icon}</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.modalTitle}>{selectedTask?.title}</Text>
                 <Text style={styles.statusLabel}>
@@ -433,8 +423,8 @@ export default function Map() {
             )}
             {!selectedTask?.completed ? (
               <View>
-                {!selectedTask?.screen && selectedTask?.type != "clue" && <Text style={styles.sectionHeading}>UPLOAD SUBMISSION PROOF:</Text>}
-                {selectedTask?.type === "photo" && (
+                {!selectedTask?.screen && selectedTask?.type != "NONE" && <Text style={styles.sectionHeading}>UPLOAD SUBMISSION PROOF:</Text>}
+                {selectedTask?.type === "IMAGE" && (
                   <View style={styles.mediaUploadBox}>
                     {proofInput ? <Text style={styles.uploadedSuccessText}>📸 Photo Staged!</Text> : null}
                     <Pressable style={styles.mediaButton} onPress={handlePickImage}>
@@ -443,7 +433,7 @@ export default function Map() {
                   </View>
                 )}
 
-                {selectedTask?.type === "audio" && (
+                {selectedTask?.type === "AUDIO" && (
                   <View style={styles.mediaUploadBox}>
                     <View style={[styles.actionRow, { width: '100%', flexDirection: 'column', gap: 10 }]}>
 
@@ -498,7 +488,7 @@ export default function Map() {
                     {submitting ? (
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
-                      <Text style={styles.btnLabel}>{selectedTask?.screen ? "Navigate" : selectedTask?.type != "clue" ? "Upload Proof" : "Next"}</Text>
+                      <Text style={styles.btnLabel}>{selectedTask?.screen ? "Navigate" : selectedTask?.type != "NONE" ? "Upload Proof" : "Next"}</Text>
                     )}
                   </Pressable>
                 </View>
