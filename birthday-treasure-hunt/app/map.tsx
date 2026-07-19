@@ -25,7 +25,7 @@ import CherryBlossomTree from '../components/trees';
 import { fetchTasks, submitProof } from '../data/taskHandler';
 import { Task } from '../types/tasks';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height } = Dimensions.get('window');
 
 const trees = [
   { left: -10, top: 110, scale: 1.35 },
@@ -404,7 +404,7 @@ export default function Map() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.modalTitle}>{selectedTask?.title}</Text>
                 <Text style={styles.statusLabel}>
-                  Status: <Text style={{ color: selectedTask?.completed ? '#00fd33' : '#FFB300', fontWeight: 'bold' }}>
+                  Status: <Text style={selectedTask?.completed ? styles.statusCompleted : styles.statusActive}>
                     {selectedTask?.completed ? "COMPLETED" : "ACTIVE"}
                   </Text>
                 </Text>
@@ -613,34 +613,142 @@ const styles = StyleSheet.create({
     backgroundColor: "#66BB6A",
   },
 
-  // Modal Styling
-  overlayContainer: { flex: 1, backgroundColor: 'rgba(11, 19, 28, 0.85)', justifyContent: 'center', alignItems: 'center' },
-  modalCard: { width: '88%', backgroundColor: "rgba(255,255,255,0.95)", borderColor: "#FFD9EC", borderRadius: 28, padding: 24, borderWidth: 4 },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  modalBigIcon: { fontSize: 44 },
-  modalTitle: { color: '#402840', fontSize: 20, fontWeight: '900' },
-  statusLabel: { color: '#64748B', fontSize: 12, marginTop: 4 },
-  divider: { height: 3, backgroundColor: '#E2E8F0', marginVertical: 18, borderRadius: 2 },
-  sectionHeading: { color: '#E05375', fontSize: 11, fontWeight: '900', marginBottom: 6, letterSpacing: 1 },
-  descriptionText: { color: '#334155', fontSize: 14, lineHeight: 22, marginBottom: 16 },
-  inputBox: { backgroundColor: '#F1F5F9', color: '#1E293B', borderRadius: 12, padding: 14, fontSize: 14, borderWidth: 2, borderColor: '#CBD5E1', marginBottom: 20 },
-  actionRow: { flexDirection: 'row', gap: 12 },
-  modalBtn: { flex: 1, padding: 18, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  btnBack: { backgroundColor: '#8cbafa' },
-  btnSend: { backgroundColor: '#FF6B9D' },
-  btnLabel: { color: '#ed0d0d', fontWeight: '900', fontSize: 12 },
-  mediaUploadBox: { backgroundColor: '#F1F5F9', borderRadius: 16, padding: 16, borderWidth: 2, borderColor: '#CBD5E1', marginBottom: 20, alignItems: 'center', justifyContent: 'center' },
-  mediaButton: { backgroundColor: '#38BDF8', width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  mediaButtonText: { color: '#FFF', fontWeight: '900', fontSize: 14 },
+  // Premium Modal Window Structure
+  overlayContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(11, 19, 28, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalCard: {
+    width: '88%',
+    backgroundColor: "#162235",
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowRadius: 24,
+    shadowOpacity: 0.4,
+    elevation: 12
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16
+  },
+  modalBigIcon: {
+    fontSize: 40
+  },
+  textFlexContainer: {
+    flex: 1
+  },
+  modalTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '800'
+  },
+  statusLabel: {
+    color: '#94A3B8',
+    fontSize: 13,
+    marginTop: 4
+  },
+  statusActive: {
+    color: '#FFD54F', // Elegant deep amber gold instead of basic yellow
+    fontWeight: '800',
+  },
+  statusCompleted: {
+    color: '#10B981', // Smooth emerald finish replacing harsh bright green
+    fontWeight: '800',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginVertical: 18
+  },
+  sectionHeading: {
+    color: '#FFD54F',
+    fontSize: 12,
+    fontWeight: '800',
+    marginBottom: 6,
+    letterSpacing: 1,
+    textTransform: 'uppercase'
+  },
+  descriptionText: {
+    color: '#E2E8F0',
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 16
+  },
+  inputBox: {
+    backgroundColor: '#0B131F',
+    color: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#334155',
+    marginBottom: 20
+  },
+  mediaUploadBox: {
+    backgroundColor: '#0B131F',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#475569',
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  mediaButton: {
+    backgroundColor: '#1E293B',
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#334155'
+  },
+  mediaButtonText: {
+    color: '#FFD54F',
+    fontWeight: '700',
+    fontSize: 14
+  },
+
+  // High-End Button Layout Actions
+  actionRow: {
+    flexDirection: 'row',
+    gap: 12
+  },
+  modalBtn: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  btnBack: {
+    backgroundColor: '#334155' // Clean slate gray for closing actions
+  },
+  btnSend: {
+    backgroundColor: '#EC4899' // Premium bright coral pink for primary submissions
+  },
+  btnLabel: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 15
+  },
   uploadedSuccessText: { color: '#22C55E', fontSize: 13, fontWeight: '700', marginBottom: 12 },
   // 💡 Label gets a bold, distinct theme color
   rewardLabel: {
-    color: '#4dff00',
+    color: '#FFD54F',
     fontWeight: '700',
   },
   // 💡 Value gets a vibrant accent color (like a bright birthday gold/amber)
   rewardValue: {
-    color: '#0e440c',
+    color: '#ff0000',
     fontWeight: '800',
   },
 });
