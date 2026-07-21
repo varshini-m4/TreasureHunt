@@ -89,14 +89,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
+    backgroundColor: "#0B131F", // Deep cyber dark background
   },
   card: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "rgba(255,255,255,0.92)",
+    backgroundColor: "#162235", // High-end dark card surface
     borderRadius: 24,
     padding: 28,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)", // Subtle rim highlight
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 8,
   },
   emoji: {
     fontSize: 48,
@@ -105,35 +113,35 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: "700",
-    color: "#2D3436",
+    color: "#FFFFFF", // High-contrast clean white header
     marginBottom: 12,
     textAlign: "center",
+    letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 24,
-    color: "#5B6B6E",
+    color: "#94A3B8", // Soft readable neutral gray
     lineHeight: 24,
   },
   input: {
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: "#0B131F", // Inset input box fill
     borderWidth: 1,
-    borderColor: "#D0D7DE",
+    borderColor: "#334155", // Refined slate border focus
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
+    color: "#FFFFFF", // Crisp white input text
     marginBottom: 10,
   },
-
   error: {
-    color: "#E53935",
+    color: "#EF4444", // Clean crimson red error feedback state
     fontSize: 14,
+    fontWeight: "600",
     marginBottom: 15,
     alignSelf: "flex-start",
   },
 });
-
-
